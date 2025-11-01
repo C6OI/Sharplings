@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Sharplings</RootNamespace>
+        <AssemblyName>Sharplings</AssemblyName>
+        <TargetName>Sharplings</TargetName>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.2"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0-2.final"/>
+        <PackageReference Include="Spectre.Console" Version="0.53.0"/>
+        <PackageReference Include="System.CommandLine" Version="2.0.0-rc.2.25502.107"/>
+        <PackageReference Include="Tomlyn" Version="0.19.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\EmbeddedFilesGenerator\EmbeddedFilesGenerator.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false" />
+
+        <AdditionalFiles Include="../Resources/**/*" />
+
+        <AdditionalFiles Remove="../Resources/**/bin/**/*"/>
+        <AdditionalFiles Remove="../Resources/**/obj/**/*"/>
+    </ItemGroup>
+</Project>
