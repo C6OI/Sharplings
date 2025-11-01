@@ -104,6 +104,6 @@ public class InitCommand : AsynchronousCommandLineAction {
         AnsiConsole.MarkupLine("[bold]Run `cd Sharplings` to go into the generated directory.\n" +
                                "Then run `Sharplings` to get started.[/]");
 
-        return 1;
+        return 0;
     }
 }
