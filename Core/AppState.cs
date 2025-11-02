@@ -19,7 +19,7 @@ public class AppState {
     public string FinalMessage { get; }
     public bool OfficialExercises { get; }
 
-    public static async Task<(AppState appState, StateFileStatus stateFileStatus)> New(IList<ExerciseInfo> exerciseInfos, string finalMessage) {
+    public static async Task<(AppState appState, StateFileParseResult parseResult)> ParseAsync(IList<ExerciseInfo> exerciseInfos, string finalMessage) {
         string exercisesPath = Path.GetFullPath("Exercises");
 
         List<Exercise> exercises = exerciseInfos.Select(info => {
@@ -48,7 +48,7 @@ public class AppState {
 
         int currentExerciseIndex = 0;
         int exercisesDone = 0;
-        StateFileStatus stateFileStatus = StateFileStatus.NotRead;
+        StateFileParseResult parseResult = StateFileParseResult.NotRead;
 
         FileStream stateFileStream = File.Open(StateFileName, new FileStreamOptions {
             Access = FileAccess.ReadWrite,
@@ -72,14 +72,14 @@ public class AppState {
                     }
                 }
 
-                stateFileStatus = StateFileStatus.Read;
+                parseResult = StateFileParseResult.Read;
             }
         }
 
         return (new AppState(exercises, finalMessage, stateFileStream, !File.Exists("info.toml")) {
             CurrentExerciseIndex = currentExerciseIndex,
             ExercisesDone = exercisesDone
-        }, stateFileStatus);
+        }, parseResult);
     }
 
     static bool TryParseStateFile(
@@ -106,7 +106,7 @@ public class AppState {
     }
 }
 
-public enum StateFileStatus {
+public enum StateFileParseResult {
     Read,
     NotRead,
 }

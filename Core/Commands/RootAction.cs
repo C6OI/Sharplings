@@ -37,9 +37,9 @@ class RootAction(
             """);
         }
 
-        (AppState appState, StateFileStatus stateFileStatus) = await AppState.New(infoFile.Exercises, infoFile.FinalMessage);
+        (AppState appState, StateFileParseResult stateParseResult) = await AppState.ParseAsync(infoFile.Exercises, infoFile.FinalMessage);
 
-        if (!string.IsNullOrWhiteSpace(infoFile.WelcomeMessage) && stateFileStatus == StateFileStatus.NotRead) {
+        if (!string.IsNullOrWhiteSpace(infoFile.WelcomeMessage) && stateParseResult == StateFileParseResult.NotRead) {
             Console.Clear();
             Console.WriteLine(infoFile.WelcomeMessage);
             Console.WriteLine("Press ENTER to continue ");
