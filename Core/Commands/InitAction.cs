@@ -5,7 +5,7 @@ using Spectre.Console;
 
 namespace Sharplings.Commands;
 
-public class InitCommand : AsynchronousCommandLineAction {
+public class InitAction : AsynchronousCommandLineAction {
     const string InitSolutionFileTemplate =
         """
         class {0} : IExercise {{
