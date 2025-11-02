@@ -29,33 +29,33 @@ public class InitCommand : AsynchronousCommandLineAction {
 
         if (Directory.Exists(sharplingsDir)) {
             throw new InvalidOperationException("""
-                A directory with the name `Sharplings` already exists in the current directory.
-                You probably already initialized Sharplings.
-                Run `cd Sharplings`
-                Then run `Sharplings` again
+            A directory with the name `Sharplings` already exists in the current directory.
+            You probably already initialized Sharplings.
+            Run `cd Sharplings`
+            Then run `Sharplings` again
             """);
         }
 
         if (Directory.Exists("Exercises") && Directory.Exists("Solutions")) {
             throw new InvalidOperationException("""
-                It looks like Sharplings is already initialized in this directory.
-                
-                If you already initialized Sharplings, run the command `Sharplings` for instructions on getting started with the exercises.
-                Otherwise, please run `Sharplings init` again in a different directory.
+            It looks like Sharplings is already initialized in this directory.
+            
+            If you already initialized Sharplings, run the command `Sharplings` for instructions on getting started with the exercises.
+            Otherwise, please run `Sharplings init` again in a different directory.
             """);
         }
 
         if (Directory.EnumerateFiles(Directory.GetCurrentDirectory(), "*.sln").Any() ||
             Directory.EnumerateFiles(Directory.GetCurrentDirectory(), "*.csproj").Any()) {
             throw new InvalidOperationException("""
-                The current directory is already part of a C# project.
-                Please initialize Sharplings in a different directory.
+            The current directory is already part of a C# project.
+            Please initialize Sharplings in a different directory.
             """);
         }
 
         Console.WriteLine("""
-            This command will create the directory `Sharplings/` which will contain the exercises.
-            Press ENTER to continue 
+        This command will create the directory `Sharplings/` which will contain the exercises.
+        Press ENTER to continue 
         """);
         Console.ReadLine();
         Console.Clear();

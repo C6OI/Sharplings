@@ -13,14 +13,15 @@ public class ExerciseInfo {
     public string Hint { get; private set; } = "";
     public bool SkipCheckUnsolved { get; private set; }
 
-    public string SolutionPath {
-        get {
-            string path = string.IsNullOrWhiteSpace(Directory)
-                ? "Solutions"
-                : Path.Combine("Solutions", Directory);
+    public string Path => GetPath("Exercises");
+    public string SolutionPath => GetPath("Solutions");
 
-            return Path.Combine(path, $"{Name}.cs");
-        }
+    string GetPath(string from) {
+        string path = !string.IsNullOrWhiteSpace(Directory)
+            ? System.IO.Path.Combine(from, Directory)
+            : from;
+
+        return System.IO.Path.Combine(path, $"{Name}.cs");
     }
 }
 
@@ -44,9 +45,9 @@ public class InfoFile {
 
         if (infoFile.Exercises.Count == 0) {
             throw new InvalidOperationException("""
-                                                    There are no exercises yet!
-                                                    Add at least one exercise before testing.
-                                                """);
+            There are no exercises yet!
+            Add at least one exercise before testing.
+            """);
         }
 
         return infoFile;
