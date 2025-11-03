@@ -1,3 +1,5 @@
+using System;
+
 // TODO: We sometimes encourage you to keep trying things on a given exercise
 // even after you already figured it out. If you got everything working and feel
 // ready for the next exercise, enter `n` in the terminal.
@@ -5,8 +7,8 @@
 // The exercise file will be reloaded when you change one of the lines below!
 // Try adding a new `Console.WriteLine` and check the updated output in the terminal.
 
-class Intro1 : IExercise {
-    public void Run() {
+class Intro1 {
+    public static void Main() {
         Console.WriteLine(@"       Welcome to...                             ");
         Console.WriteLine(@"  __ _                      _ _                  ");
         Console.WriteLine(@" / _\ |__   __ _ _ __ _ __ | (_)_ __   __ _ ___  ");

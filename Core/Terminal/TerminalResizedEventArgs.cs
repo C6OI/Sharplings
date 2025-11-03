@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 namespace Sharplings.Terminal;
 
 [PublicAPI]
-public class TerminalResizedEventArgs(
+class TerminalResizedEventArgs(
     int oldWidth,
     int oldHeight,
     int newWidth,

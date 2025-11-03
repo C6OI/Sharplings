@@ -5,7 +5,7 @@ using Spectre.Console;
 
 namespace Sharplings.Commands;
 
-public class InitAction : AsynchronousCommandLineAction {
+class InitAction : AsynchronousCommandLineAction {
     const string InitSolutionFileTemplate =
         """
         class {0} : IExercise {{
@@ -53,12 +53,12 @@ public class InitAction : AsynchronousCommandLineAction {
             """);
         }
 
-        Console.WriteLine("""
+        AnsiConsole.WriteLine("""
         This command will create the directory `Sharplings/` which will contain the exercises.
         Press ENTER to continue 
         """);
         Console.ReadLine();
-        Console.Clear();
+        AnsiConsole.Clear();
 
         Directory.CreateDirectory(sharplingsDir);
         Directory.SetCurrentDirectory(sharplingsDir);
@@ -94,11 +94,6 @@ public class InitAction : AsynchronousCommandLineAction {
 
         string internalScriptsDir = Path.Combine("Exercises", "Internal");
         Directory.CreateDirectory(internalScriptsDir);
-
-        foreach ((string name, byte[] content) in embeddedFiles.ExercisesInternal) {
-            string path = Path.Combine(internalScriptsDir, name);
-            await File.WriteAllBytesAsync(path, content, cancellationToken);
-        }
 
         AnsiConsole.MarkupLine("[lime]Initialization done ✓[/]");
         AnsiConsole.MarkupLine("[bold]Run `cd Sharplings` to go into the generated directory.\n" +

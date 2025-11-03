@@ -133,14 +133,12 @@ public class EmbeddedFilesGenerator : IIncrementalGenerator {
         sb.AppendLine("public sealed class EmbeddedFiles");
         sb.AppendLine("{");
         sb.AppendLine("    public Dictionary<string, byte[]> Files { get; }");
-        sb.AppendLine("    public Dictionary<string, byte[]> ExercisesInternal { get; }");
         sb.AppendLine("    public IList<ExerciseFiles> ExerciseFiles { get; }");
         sb.AppendLine("    public IList<ExerciseDir> ExerciseDirs { get; }");
         sb.AppendLine();
-        sb.AppendLine("    internal EmbeddedFiles(Dictionary<string, byte[]> files, Dictionary<string, byte[]> exercisesInternal, IList<ExerciseFiles> exerciseFiles, IList<ExerciseDir> exerciseDirs)");
+        sb.AppendLine("    internal EmbeddedFiles(Dictionary<string, byte[]> files, IList<ExerciseFiles> exerciseFiles, IList<ExerciseDir> exerciseDirs)");
         sb.AppendLine("    {");
         sb.AppendLine("        Files = files;");
-        sb.AppendLine("        ExercisesInternal = exercisesInternal;");
         sb.AppendLine("        ExerciseFiles = exerciseFiles;");
         sb.AppendLine("        ExerciseDirs = exerciseDirs;");
         sb.AppendLine("    }");
@@ -226,26 +224,9 @@ public class EmbeddedFilesGenerator : IIncrementalGenerator {
         sb.AppendLine("        };");
         sb.AppendLine();
 
-        sb.AppendLine("        Dictionary<string, byte[]> exercisesInternal = new()");
-        sb.AppendLine("        {");
-
-        string internalScriptsPath = Path.Combine("Exercises", "Internal");
-        foreach (AdditionalText internalScript in files.Where(file => file.Path.Contains(internalScriptsPath))) {
-            string name = Path.GetFileName(internalScript.Path);
-            byte[] content = GetContentAsByteArray(internalScript.GetText()!);
-
-            sb.AppendLine($"            {DictionaryEntryTemplate(name, content)},");
-        }
-
-        sb.AppendLine("        };");
-        sb.AppendLine();
-
-        sb.AppendLine($"        return new EmbeddedFiles(files, exercisesInternal, exerciseFiles, exerciseDirs);");
+        sb.AppendLine($"        return new EmbeddedFiles(files, exerciseFiles, exerciseDirs);");
         sb.AppendLine("    }");
         sb.AppendLine("}");
-        return;
-
-
     }
 
     static byte[] GetFileContent(ImmutableArray<AdditionalText> files, string path, SourceProductionContext context) {

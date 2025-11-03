@@ -1,5 +1,5 @@
-class Intro1 : IExercise {
-    public void Run() {
+class Intro1 {
+    public static void Main() {
         // Congratulations, you finished the first exercise 🎉
         // As an introduction to Sharplings, the first exercise only required
         // entering `n` in the terminal to go to the next exercise.

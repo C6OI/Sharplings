@@ -5,7 +5,7 @@ using Spectre.Console.Rendering;
 
 namespace Sharplings.Terminal;
 
-public class Terminal {
+class Terminal {
     public Terminal(TerminalOutputData outputData) {
         OutputData = outputData;
         SizeWatcher = new TerminalSizeWatcher();

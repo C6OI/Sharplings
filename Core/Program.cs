@@ -3,12 +3,19 @@ using Sharplings.Commands;
 using Spectre.Console;
 
 ParseResult parseResult = GenerateCommands().Parse(args);
+
 try {
     return await parseResult.InvokeAsync(new InvocationConfiguration {
         EnableDefaultExceptionHandler = false
     });
 } catch (Exception e) {
-    AnsiConsole.MarkupLine($"[red]{Markup.Escape(e.Message)}[/]");
+    AnsiConsole.WriteException(e, new ExceptionSettings {
+        Format = ExceptionFormats.ShortenEverything,
+        Style = new ExceptionStyle {
+            Message = Style.Parse("red")
+        }
+    });
+
     return e.HResult;
 }
 

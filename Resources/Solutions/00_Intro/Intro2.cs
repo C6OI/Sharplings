@@ -1,5 +1,7 @@
-class Intro2 : IExercise {
-    public void Run() {
+using System;
+
+class Intro2 {
+    public static void Main() {
         // `WriteLine` instead of `PrintLine`.
         Console.WriteLine("Hello world!");
     }

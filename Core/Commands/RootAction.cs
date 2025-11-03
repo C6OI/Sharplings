@@ -1,6 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using Sharplings.Terminal;
+using Sharplings.Watch;
 using Spectre.Console;
 
 namespace Sharplings.Commands;
@@ -12,7 +12,7 @@ class RootAction(
 
     public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default) {
         if (!Directory.Exists("Exercises")) {
-            Console.WriteLine("""
+            AnsiConsole.WriteLine("""
                    Welcome to...                             
               __ _                      _ _                  
              / _\ |__   __ _ _ __ _ __ | (_)_ __   __ _ ___  
@@ -40,11 +40,11 @@ class RootAction(
         (AppState appState, StateFileParseResult stateParseResult) = await AppState.ParseAsync(infoFile.Exercises, infoFile.FinalMessage);
 
         if (!string.IsNullOrWhiteSpace(infoFile.WelcomeMessage) && stateParseResult == StateFileParseResult.NotRead) {
-            Console.Clear();
-            Console.WriteLine(infoFile.WelcomeMessage);
-            Console.WriteLine("Press ENTER to continue ");
+            AnsiConsole.Clear();
+            AnsiConsole.WriteLine(infoFile.WelcomeMessage);
+            AnsiConsole.WriteLine("Press ENTER to continue ");
             Console.ReadLine();
-            Console.Clear();
+            AnsiConsole.Clear();
         }
 
         if (!AnsiConsole.Profile.Out.IsTerminal) {
@@ -55,18 +55,15 @@ class RootAction(
 
         switch (subcommand) {
             case Subcommand.None: {
-                Terminal.Terminal terminal = new(new TerminalOutputData {
-                    CompletedExercisesCount = Random.Shared.Next(0, 95),
-                    AllExercisesCount = 94
-                });
-
-                await Task.Delay(-1, cancellationToken);
+                await Watcher.StartWatch(appState, manualRun, cancellationToken);
                 break;
             }
 
             case Subcommand.Hint: {
                 throw new NotImplementedException();
             }
+
+            default: throw new ArgumentOutOfRangeException(nameof(subcommand), subcommand, null);
         }
 
         return 0;

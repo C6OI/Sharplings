@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 namespace Sharplings.Terminal;
 
 [PublicAPI]
-public class TerminalOutputData {
+record TerminalOutputData {
     public string CompilationOutput { get; set; } = "";
     public string ExerciseOutput { get; set; } = "";
     public bool ExerciseDone { get; set; }
@@ -13,7 +13,7 @@ public class TerminalOutputData {
     public int AllExercisesCount { get; set; }
     public string Keybinds { get; set; } = "";
 
-    public string ScriptRelativePath => $"{ModuleName}/{ScriptFile}";
-    public string ExercisePath => $"exercises/{ScriptRelativePath}";
-    public string SolutionPath => $"solutions/{ScriptRelativePath}";
+    public string ScriptRelativePath => $"{ModuleName}/{ScriptFile}.cs";
+    public string ExercisePath => $"Exercises/{ScriptRelativePath}";
+    public string SolutionPath => $"Solutions/{ScriptRelativePath}";
 }

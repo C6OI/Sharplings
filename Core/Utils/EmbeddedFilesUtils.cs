@@ -1,6 +1,6 @@
 namespace Sharplings.Utils;
 
-public static class EmbeddedFilesUtils {
+static class EmbeddedFilesUtils {
     public static async Task InitExercisesDirAsync(this EmbeddedFiles embeddedFiles, IList<ExerciseInfo> exerciseInfos, CancellationToken cancellationToken = default) {
         Directory.CreateDirectory("Exercises");
         await File.WriteAllBytesAsync(Path.Combine("Exercises", "README.md"), embeddedFiles.Files["ExercisesReadme"], cancellationToken);
@@ -22,5 +22,17 @@ public static class EmbeddedFilesUtils {
 
         string readmePath = Path.Combine(dirPath, "README.md");
         await File.WriteAllBytesAsync(readmePath, exerciseDir.Readme, cancellationToken);
+    }
+
+    public static async Task<string> WriteSolutionToDisk(this EmbeddedFiles embeddedFiles, int index, string name) {
+        ExerciseFiles exerciseFiles = embeddedFiles.ExerciseFiles[index];
+        ExerciseDir dir = embeddedFiles.ExerciseDirs[exerciseFiles.DirInd];
+
+        string path = Path.Combine("Solutions", dir.Name);
+        Directory.CreateDirectory(path);
+
+        path = Path.Combine(path, $"{name}.cs");
+        await File.WriteAllBytesAsync(path, exerciseFiles.Solution);
+        return path;
     }
 }

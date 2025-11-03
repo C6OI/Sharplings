@@ -4,7 +4,7 @@ using Spectre.Console;
 namespace Sharplings.Terminal;
 
 [PublicAPI]
-public class TerminalSizeWatcher { // Not a good solution, but I haven't found anything better :(
+class TerminalSizeWatcher { // Not a good solution, but I haven't found anything better :(
     const int PollIntervalMs = 50;
 
     bool _isRunning;

@@ -1,9 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
+#if !DEBUG
+using Sharplings.Utils;
+#endif
 
 namespace Sharplings;
 
-public class AppState {
+class AppState {
     const string StateFileName = ".sharplings-state";
+    const string StateFileHeader = "DON'T EDIT THIS FILE!\n\n";
 
     AppState(List<Exercise> exercises, string finalMessage, FileStream stateFileStream, bool officialExercises) {
         Exercises = exercises;
@@ -19,11 +24,12 @@ public class AppState {
     public string FinalMessage { get; }
     public bool OfficialExercises { get; }
 
+    public Exercise CurrentExercise => Exercises[CurrentExerciseIndex];
+
     public static async Task<(AppState appState, StateFileParseResult parseResult)> ParseAsync(IList<ExerciseInfo> exerciseInfos, string finalMessage) {
         string exercisesPath = Path.GetFullPath("Exercises");
 
         List<Exercise> exercises = exerciseInfos.Select(info => {
-            string path = info.Path;
             string name = info.Name;
             string? dir = info.Directory;
             string hint = info.Hint;
@@ -37,7 +43,6 @@ public class AppState {
             return new Exercise {
                 Directory = dir,
                 Name = name,
-                Path = path,
                 FullPath = fullPath,
                 Test = info.Test,
                 StrictAnalyzer = info.StrictAnalyzer,
@@ -89,11 +94,7 @@ public class AppState {
         doneExercises = null;
         currentExerciseName = null;
 
-        // The first line: comment
-        // The second line: `\n`
-        // The third line: current exercise name
-        // The fourth line: `\n`
-        // The fifth and all other lines: done exercises names
+        // See `this.Write` for more information about the file format.
         string[] lines = stateFileContent.Split('\n');
         if (lines.Length < 4) return false;
 
@@ -104,9 +105,64 @@ public class AppState {
         doneExercises = lines.Skip(4).TakeWhile(line => !string.IsNullOrWhiteSpace(line)).ToHashSet();
         return true;
     }
+
+    /// Official exercises: Dump the solution file from the binary and return its path.<br/>
+    /// Community exercises: Check if a solution file exists and return its path in that case.
+    public async Task<string?> CurrentSolutionPath() {
+#if !DEBUG
+        if (OfficialExercises)
+            return await EmbeddedFilesFactory.Instance.WriteSolutionToDisk(CurrentExerciseIndex, CurrentExercise.Name);
+
+        string solutionPath = CurrentExercise.SolutionPath;
+        // ReSharper disable once ConvertIfStatementToReturnStatement
+        if (File.Exists(solutionPath)) return solutionPath;
+#endif
+
+        return null;
+    }
+
+    public async Task SetPending(int exerciseIndex) {
+        if (SetStatus(exerciseIndex, false))
+            await Write();
+    }
+
+    public bool SetStatus(int exerciseIndex, bool done) {
+        Exercise exercise = Exercises[exerciseIndex];
+        if (exercise.Done == done) return false;
+
+        exercise.Done = done;
+
+        if (done) ExercisesDone++;
+        else ExercisesDone--;
+
+        return true;
+    }
+
+    /// Write the state file.<br/>
+    /// The file's format is very simple:<br/>
+    /// - The first line is a comment.<br/>
+    /// - The second line is an empty line.<br/>
+    /// - The third line is the name of the current exercise. It must end with `\n` even if there
+    /// are no done exercises.<br/>
+    /// - The fourth line is an empty line.<br/>
+    /// - All remaining lines are the names of done exercises.<br/>
+    async Task Write() {
+        StringBuilder builder = new(StateFileHeader);
+        builder.AppendLine(CurrentExercise.Name);
+
+        foreach (Exercise exercise in Exercises.Where(exercise => exercise.Done)) {
+            builder.Append('\n');
+            builder.Append(exercise.Name);
+        }
+
+        StateFileStream.Position = 0;
+        StateFileStream.SetLength(0);
+        await StateFileStream.WriteAsync(Encoding.Default.GetBytes(builder.ToString()));
+        await StateFileStream.FlushAsync();
+    }
 }
 
-public enum StateFileParseResult {
+enum StateFileParseResult {
     Read,
     NotRead,
 }
