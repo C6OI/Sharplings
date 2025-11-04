@@ -1,22 +1,10 @@
 using System.Threading.Channels;
 using Sharplings.Utils;
-using Spectre.Console;
 
 namespace Sharplings.Watch;
 
 class NotifyEventHandler {
     const int DebounceDurationMs = 200;
-    const string NotifyErrorTemplate =
-        $$"""
-        Caught an exception in {{nameof(NotifyEventHandler)}}: {0}
-        ---
-        
-        The automatic detection of exercise file changes failed :(
-        Please try running `Sharplings` again.
-        
-        If you keep getting this error, run `Sharplings --manual-run` to deactivate the file watcher.
-        You need to manually trigger running the current exercise using `r` then.
-        """;
 
     public NotifyEventHandler(ChannelWriter<IWatchEvent> watchEventWriter, IList<string> exerciseNames, CancellationToken cancellationToken) {
         (ChannelWriter<int> updateWriter, ChannelReader<int> updateReader) = Channel.CreateBounded<int>(new BoundedChannelOptions(1) {
@@ -67,7 +55,7 @@ class NotifyEventHandler {
             } catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) {
                 break;
             } catch (Exception e) {
-                HandleException(e);
+                await HandleException(e);
                 break;
             }
         }
@@ -84,13 +72,13 @@ class NotifyEventHandler {
 
             await UpdateWriter.WriteAsync(exerciseIndex);
         } catch (Exception ex) {
-            HandleException(ex);
+            await HandleException(ex);
         }
     }
 
     public void FileSystemWatcherOnError(object sender, ErrorEventArgs e) =>
-        HandleException(e.GetException());
+        _ = HandleException(e.GetException());
 
-    static void HandleException(Exception e) =>
-        AnsiConsole.WriteLine(NotifyErrorTemplate, e);
+    async Task HandleException(Exception e) =>
+        await WatchEventWriter.WriteAsync(new NotifyErr(e));
 }

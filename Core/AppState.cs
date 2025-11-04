@@ -1,8 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-#if !DEBUG
 using Sharplings.Utils;
-#endif
+using Spectre.Console;
 
 namespace Sharplings;
 
@@ -109,16 +108,13 @@ class AppState {
     /// Official exercises: Dump the solution file from the binary and return its path.<br/>
     /// Community exercises: Check if a solution file exists and return its path in that case.
     public async Task<string?> CurrentSolutionPath() {
-#if !DEBUG
         if (OfficialExercises)
             return await EmbeddedFilesFactory.Instance.WriteSolutionToDisk(CurrentExerciseIndex, CurrentExercise.Name);
 
         string solutionPath = CurrentExercise.SolutionPath;
-        // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (File.Exists(solutionPath)) return solutionPath;
-#endif
-
-        return null;
+        return File.Exists(solutionPath)
+            ? solutionPath
+            : null;
     }
 
     public async Task SetPending(int exerciseIndex) {
@@ -138,6 +134,61 @@ class AppState {
         return true;
     }
 
+    /// Mark the current exercise as done and move on to the next pending exercise if one exists.
+    /// If all exercises are marked as done, run all of them to make sure that they are actually
+    /// done. If an exercise which is marked as done fails, mark it as pending and continue on it.
+    public async Task<ExercisesProgress> DoneCurrentExercise(bool clearBeforeFinalCheck) {
+        if (!CurrentExercise.Done) {
+            CurrentExercise.Done = true;
+            ExercisesDone++;
+        }
+
+        int? nextPendingExerciseIndex = NextPendingExerciseIndex();
+        if (nextPendingExerciseIndex != null) {
+            await SetCurrentExerciseIndex(nextPendingExerciseIndex.Value);
+            return ExercisesProgress.NewPending;
+        }
+
+        if (clearBeforeFinalCheck) AnsiConsole.Clear();
+        else AnsiConsole.WriteLine();
+
+        int? firstPendingExerciseIndex = await CheckAllExercises();
+        if (firstPendingExerciseIndex != null) {
+            await SetCurrentExerciseIndex(firstPendingExerciseIndex.Value);
+            return ExercisesProgress.NewPending;
+        }
+
+        RenderFinalMessage();
+        return ExercisesProgress.AllDone;
+    }
+
+    public async Task SetCurrentExerciseIndex(int exerciseIndex) {
+        if (exerciseIndex == CurrentExerciseIndex) return;
+        if (exerciseIndex >= Exercises.Count)
+            throw new IndexOutOfRangeException("The current exercise index is higher than the number of exercises");
+
+        CurrentExerciseIndex = exerciseIndex;
+        await Write();
+    }
+
+    /// Return the exercise index of the first pending exercise found.
+    public async Task<int?> CheckAllExercises() {
+        AnsiConsole.Cursor.Hide();
+        int? result = await CheckAllExercisesImpl();
+        AnsiConsole.Cursor.Show();
+
+        return result;
+    }
+
+    public void RenderFinalMessage() {
+        AnsiConsole.Clear();
+        AnsiConsole.WriteLine("You made it!");
+
+        if (!string.IsNullOrWhiteSpace(FinalMessage)) {
+            AnsiConsole.WriteLine(FinalMessage);
+        }
+    }
+
     /// Write the state file.<br/>
     /// The file's format is very simple:<br/>
     /// - The first line is a comment.<br/>
@@ -148,7 +199,8 @@ class AppState {
     /// - All remaining lines are the names of done exercises.<br/>
     async Task Write() {
         StringBuilder builder = new(StateFileHeader);
-        builder.AppendLine(CurrentExercise.Name);
+        builder.Append(CurrentExercise.Name);
+        builder.Append('\n');
 
         foreach (Exercise exercise in Exercises.Where(exercise => exercise.Done)) {
             builder.Append('\n');
@@ -160,9 +212,36 @@ class AppState {
         await StateFileStream.WriteAsync(Encoding.Default.GetBytes(builder.ToString()));
         await StateFileStream.FlushAsync();
     }
+
+    // Return the index of the next pending exercise or `None` if all exercises are done.
+    int? NextPendingExerciseIndex() {
+        int nextIndex = CurrentExerciseIndex + 1;
+
+        if (nextIndex < Exercises.Count) {
+            int laterIndex = Exercises[nextIndex..].FindIndex(exercise => !exercise.Done);
+            if (laterIndex != -1) return laterIndex + nextIndex;
+        }
+
+        int prevIndex = Exercises[..CurrentExerciseIndex].FindIndex(exercise => !exercise.Done);
+        return prevIndex == -1 ? null : prevIndex;
+    }
+
+    async Task<int?> CheckAllExercisesImpl() {
+        // todo
+        return -1;
+    }
 }
 
 enum StateFileParseResult {
     Read,
     NotRead,
+}
+
+enum ExercisesProgress {
+    /// All exercises are done.
+    AllDone,
+    /// A new exercise is now pending.
+    NewPending,
+    /// The current exercise is still pending.
+    CurrentPending,
 }

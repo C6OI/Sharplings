@@ -11,6 +11,7 @@ class RootAction(
     const int CurrentFormatVersion = 1;
 
     public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default) {
+        //Directory.SetCurrentDirectory("Sharplings");
         if (!Directory.Exists("Exercises")) {
             AnsiConsole.WriteLine("""
                    Welcome to...                             

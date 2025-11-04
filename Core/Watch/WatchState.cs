@@ -6,7 +6,7 @@ using Spectre.Console;
 namespace Sharplings.Watch;
 
 class WatchState {
-    public WatchState(AppState appState, ChannelWriter<IWatchEvent> watchEventWriter, bool manualRun) {
+    public WatchState(AppState appState, ChannelWriter<IWatchEvent> watchEventWriter, bool manualRun, CancellationToken cancellationToken) {
         (TermEventUnpauseWriter, ChannelReader<byte> termEventUnpauseReader) =
             Channel.CreateBounded<byte>(new BoundedChannelOptions(1) {
                 SingleReader = true,
@@ -23,7 +23,9 @@ class WatchState {
             ScriptFile = AppState.CurrentExercise.Name
         });
 
-        TermEventHandlerTask = Task.Run(() => TerminalEvent.TerminalEventHandler(watchEventWriter, termEventUnpauseReader, manualRun));
+        TermEventHandlerTask =
+            Task.Run(() => TerminalEvent.TerminalEventHandler(watchEventWriter, termEventUnpauseReader, manualRun, cancellationToken),
+                cancellationToken);
     }
 
     Terminal.Terminal Terminal { get; }
@@ -63,5 +65,11 @@ class WatchState {
         if (AppState.CurrentExerciseIndex != exerciseIndex) return;
 
         await RunCurrentExercise();
+    }
+
+    public async Task<ExercisesProgress> NextExercise() {
+        if (DoneStatus is Pending) return ExercisesProgress.CurrentPending;
+
+        return await AppState.DoneCurrentExercise(true);
     }
 }

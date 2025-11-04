@@ -5,20 +5,11 @@ using Spectre.Console.Rendering;
 
 namespace Sharplings.Terminal;
 
-class Terminal {
-    public Terminal(TerminalOutputData outputData) {
-        OutputData = outputData;
-        SizeWatcher = new TerminalSizeWatcher();
-
-        _ = SizeWatcher.StartAsync(args => {
-            if (!args.WidthChanged) return;
-            Refresh();
-        });
-    }
-
+class Terminal(
+    TerminalOutputData outputData
+) {
     static int Width => AnsiConsole.Profile.Width;
     readonly Lock _lock = new();
-    TerminalSizeWatcher SizeWatcher { get; }
 
     public TerminalOutputData OutputData {
         get;
@@ -28,7 +19,7 @@ class Terminal {
                 Refresh();
             }
         }
-    }
+    } = outputData;
 
     IRenderable GenerateOutput() {
         lock (_lock) {
