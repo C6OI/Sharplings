@@ -160,6 +160,16 @@ class AppState {
         await Write();
     }
 
+    public async Task SetCurrentExerciseByName(string exerciseName) {
+        int index = Exercises.FindIndex(exercise => exercise.Name == exerciseName);
+
+        if (index == -1)
+            throw new KeyNotFoundException($"No exercise found for '{exerciseName}'!");
+
+        CurrentExerciseIndex = index;
+        await Write();
+    }
+
     /// Return the exercise index of the first pending exercise found.
     public async Task<int?> CheckAllExercises() {
         AnsiConsole.Cursor.Hide();

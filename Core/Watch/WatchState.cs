@@ -24,7 +24,7 @@ class WatchState {
     }
 
     AppState AppState { get; }
-    StringBuilder Output { get; } = new();
+    StringBuilder Output { get; } = new(1 << 14);
     IDoneStatus DoneStatus { get; set; } = new Pending();
     bool IsShowHint { get; set; }
     int TerminalWidth { get; set; } = AnsiConsole.Profile.Width;
@@ -148,7 +148,7 @@ class WatchState {
             AnsiConsole.MarkupLine("[bold lime]Exercise done ✓[/]");
 
             if (DoneStatus is DoneWithSolution(var solutionPath)) {
-                SolutionLinkLine(solutionPath, AppState.EmitFileLinks);
+                Exercise.SolutionLinkLine(solutionPath, AppState.EmitFileLinks);
             }
 
             AnsiConsole.WriteLine("When done experimenting, enter `n` to move on to the next exercise #️⃣");
@@ -158,34 +158,11 @@ class WatchState {
         ProgressBar(AppState.ExercisesDone, AppState.Exercises.Count, TerminalWidth);
         AnsiConsole.WriteLine();
 
-        AnsiConsole.Write("Current exercise: ");
-        AppState.CurrentExercise.TerminalFileLink(AppState.EmitFileLinks);
+        AnsiConsole.MarkupLineInterpolated(
+            $"Current exercise: [blue underline]{Exercise.TerminalFileLink(AppState.CurrentExercise.Path, AppState.EmitFileLinks)}[/]");
         AnsiConsole.WriteLine();
 
         ShowPrompt();
-    }
-
-    public static void SolutionLinkLine(string solutionPath, bool emitFileLinks) {
-        AnsiConsole.Markup("[bold]Solution[/] for comparison: ");
-
-        string path = emitFileLinks
-            ? TerminalFileLink(solutionPath)
-            : solutionPath;
-
-        AnsiConsole.MarkupLineInterpolated($"[cyan underline]{path}[/]");
-    }
-
-    static string TerminalFileLink(string path) {
-        StringBuilder builder = new();
-
-        builder.Append("\e]8;;file://");
-        builder.Append(path);
-        builder.Append("\e\\");
-        // Only this part is visible.
-        builder.Append(path);
-        builder.Append("\e]8;;\e\\");
-
-        return builder.ToString();
     }
 
     static void ProgressBar(int currentValue, int maxValue, int termWidth) {

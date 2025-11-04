@@ -60,6 +60,15 @@ class RootAction(
                 break;
             }
 
+            case Subcommand.Run: {
+                string? exerciseName = parseResult.GetValue<string>("name");
+                if (!string.IsNullOrWhiteSpace(exerciseName)) {
+                    await appState.SetCurrentExerciseByName(exerciseName);
+                }
+
+                return await Run.RunExercise(appState);
+            }
+
             case Subcommand.Hint: {
                 throw new NotImplementedException();
             }
@@ -73,5 +82,8 @@ class RootAction(
 
 enum Subcommand {
     None,
+    Run,
+    CheckAll,
+    Reset,
     Hint
 }

@@ -26,9 +26,8 @@ class InitAction : AsynchronousCommandLineAction {
 
     public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default) {
         DirectoryInfo dirInfo = parseResult.GetValue<DirectoryInfo>("--output") ?? new DirectoryInfo("Sharplings");
-        string sharplingsDir = dirInfo.FullName;
 
-        if (Directory.Exists(sharplingsDir)) {
+        if (dirInfo.Exists) {
             throw new InvalidOperationException($"""
             A directory with the name `{dirInfo.Name}` already exists in the current directory.
             You probably already initialized Sharplings.
@@ -61,8 +60,8 @@ class InitAction : AsynchronousCommandLineAction {
         Console.ReadLine();
         AnsiConsole.Clear();
 
-        Directory.CreateDirectory(sharplingsDir);
-        Directory.SetCurrentDirectory(sharplingsDir);
+        dirInfo.Create();
+        Directory.SetCurrentDirectory(dirInfo.FullName);
 
         EmbeddedFiles embeddedFiles = EmbeddedFilesFactory.Instance;
 

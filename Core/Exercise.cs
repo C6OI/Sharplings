@@ -14,21 +14,29 @@ class Exercise : RunnableExercise {
     public required string Hint { get; init; }
     public required bool Done { get; set; }
 
-    public void TerminalFileLink(bool emitFileLinks) {
-        string path;
+    public static void SolutionLinkLine(string solutionPath, bool emitFileLinks) {
+        AnsiConsole.Markup("[bold]Solution[/] for comparison: ");
 
-        if (emitFileLinks) {
-            path = "\e]8;;file://";
-            path += Path;
-            path += "\e\\";
-            // Only this part is visible.
-            path += Path;
-            path += "\e]8;;\e\\";
-        } else {
-            path = Path;
-        }
+        string path = emitFileLinks
+            ? TerminalFileLink(solutionPath, emitFileLinks)
+            : solutionPath;
 
-        AnsiConsole.MarkupLineInterpolated($"[blue underline]{path}[/]");
+        AnsiConsole.MarkupLineInterpolated($"[cyan underline]{path}[/]");
+    }
+
+    public static string TerminalFileLink(string path, bool emitFileLinks) {
+        if (!emitFileLinks) return path;
+
+        StringBuilder builder = new();
+
+        builder.Append("\e]8;;file://");
+        builder.Append(path);
+        builder.Append("\e\\");
+        // Only this part is visible.
+        builder.Append(path);
+        builder.Append("\e]8;;\e\\");
+
+        return builder.ToString();
     }
 }
 
