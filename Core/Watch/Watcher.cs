@@ -72,11 +72,7 @@ static class Watcher {
                     case Input { InputEvent: InputEvent.Next }: {
                         switch (await watchState.NextExercise()) {
                             case ExercisesProgress.AllDone: goto ExitLoop;
-
-                            case ExercisesProgress.CurrentPending: {
-                                watchState.RefreshTerminal();
-                                break;
-                            }
+                            case ExercisesProgress.CurrentPending: break;
 
                             case ExercisesProgress.NewPending: {
                                 await watchState.RunCurrentExercise();
@@ -139,7 +135,7 @@ static class Watcher {
                     }
 
                     case TerminalResize(var width): {
-                        watchState.RefreshTerminal();
+                        watchState.UpdateTerminalWidth(width);
                         break;
                     }
 

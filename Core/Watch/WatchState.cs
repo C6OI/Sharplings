@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text;
 using System.Threading.Channels;
 using Sharplings.Terminal;
 using Sharplings.Utils;
@@ -16,24 +18,17 @@ class WatchState {
         AppState = appState;
         ManualRun = manualRun;
 
-        Terminal = new Terminal.Terminal(new TerminalOutputData {
-            CompletedExercisesCount = AppState.ExercisesDone,
-            AllExercisesCount = AppState.Exercises.Count,
-            ModuleName = AppState.CurrentExercise.Directory ?? "",
-            ScriptFile = AppState.CurrentExercise.Name
-        });
-
         TermEventHandlerTask =
             Task.Run(() => TerminalEvent.TerminalEventHandler(watchEventWriter, termEventUnpauseReader, manualRun, cancellationToken),
                 cancellationToken);
     }
 
-    Terminal.Terminal Terminal { get; }
     AppState AppState { get; }
-    bool IsShowHint { get; set; } = false;
+    StringBuilder Output { get; } = new();
     IDoneStatus DoneStatus { get; set; } = new Pending();
+    bool IsShowHint { get; set; }
+    int TerminalWidth { get; set; } = AnsiConsole.Profile.Width;
     bool ManualRun { get; }
-    int TerminalWidth { get; } = AnsiConsole.Profile.Width;
     ChannelWriter<byte> TermEventUnpauseWriter { get; }
     Task TermEventHandlerTask { get; }
 
@@ -44,9 +39,9 @@ class WatchState {
 
         AnsiConsole.WriteLine($"\nChecking the exercise `{AppState.CurrentExercise.Name}`. Please wait…");
 
-        TerminalOutputData outputData = Terminal.OutputData;
+        bool success = await AppState.CurrentExercise.RunExercise(Output);
+        Output.AppendLine();
 
-        bool success = await AppState.CurrentExercise.RunExercise(outputData);
         if (success) {
             string? currentSolutionPath = await AppState.CurrentSolutionPath();
 
@@ -58,7 +53,7 @@ class WatchState {
             DoneStatus = new Pending();
         }
 
-        Terminal.OutputData = outputData;
+        Render();
     }
 
     public async Task HandleFileChange(int exerciseIndex) {
@@ -77,9 +72,7 @@ class WatchState {
         if (IsShowHint) return;
 
         IsShowHint = true;
-        Terminal.OutputData = Terminal.OutputData with {
-            ExerciseOutput = AppState.CurrentExercise.Hint // todo
-        };
+        Render();
     }
 
     public async Task<ExercisesProgress> CheckAllExercises() {
@@ -109,16 +102,16 @@ class WatchState {
         while (true) {
             ConsoleKeyInfo key = Console.ReadKey();
 
-            switch (key.Key) {
-                case ConsoleKey.Y: {
+            switch (key.KeyChar) {
+                case 'y' or 'Y': {
                     await AppState.ResetCurrentExercise();
 
                     if (ManualRun) await RunCurrentExercise();
                     break;
                 }
 
-                case ConsoleKey.N: {
-                    RefreshTerminal();
+                case 'n' or 'N': {
+                    Render();
                     break;
                 }
 
@@ -131,6 +124,132 @@ class WatchState {
         await TermEventUnpauseWriter.WriteAsync(0);
     }
 
-    [Obsolete("Will be rewritten soon")]
-    public void RefreshTerminal() => Terminal.OutputData = Terminal.OutputData;
+    public void UpdateTerminalWidth(int width) {
+        if (TerminalWidth == width) return;
+
+        TerminalWidth = width;
+        Render();
+    }
+
+    public void Render() {
+        // Prevent having the first line shifted if clearing wasn't successful.
+        AnsiConsole.Write('\n');
+        AnsiConsole.Clear();
+
+        AnsiConsole.Markup(Output.ToString());
+
+        if (IsShowHint) {
+            AnsiConsole.MarkupLine("[bold underline cyan]Hint[/]");
+            AnsiConsole.WriteLine(AppState.CurrentExercise.Hint);
+            AnsiConsole.WriteLine();
+        }
+
+        if (DoneStatus is not Pending) {
+            AnsiConsole.MarkupLine("[bold lime]Exercise done ✓[/]");
+
+            if (DoneStatus is DoneWithSolution(var solutionPath)) {
+                SolutionLinkLine(solutionPath, AppState.EmitFileLinks);
+            }
+
+            AnsiConsole.WriteLine("When done experimenting, enter `n` to move on to the next exercise #️⃣");
+            AnsiConsole.WriteLine();
+        }
+
+        ProgressBar(AppState.ExercisesDone, AppState.Exercises.Count, TerminalWidth);
+        AnsiConsole.WriteLine();
+
+        AnsiConsole.Write("Current exercise: ");
+        AppState.CurrentExercise.TerminalFileLink(AppState.EmitFileLinks);
+        AnsiConsole.WriteLine();
+
+        ShowPrompt();
+    }
+
+    public static void SolutionLinkLine(string solutionPath, bool emitFileLinks) {
+        AnsiConsole.Markup("[bold]Solution[/] for comparison: ");
+
+        string path = emitFileLinks
+            ? TerminalFileLink(solutionPath)
+            : solutionPath;
+
+        AnsiConsole.MarkupLineInterpolated($"[cyan underline]{path}[/]");
+    }
+
+    static string TerminalFileLink(string path) {
+        StringBuilder builder = new();
+
+        builder.Append("\e]8;;file://");
+        builder.Append(path);
+        builder.Append("\e\\");
+        // Only this part is visible.
+        builder.Append(path);
+        builder.Append("\e]8;;\e\\");
+
+        return builder.ToString();
+    }
+
+    static void ProgressBar(int currentValue, int maxValue, int termWidth) {
+        Debug.Assert(maxValue <= 999);
+        Debug.Assert(currentValue <= maxValue);
+
+        const string prefix = "Progress: [";
+        const int prefixWidth = 11;
+        const int postfixWidth = 9;
+        const int wrapperWidth = prefixWidth + postfixWidth;
+        const int minLineWidth = wrapperWidth + 4;
+
+        if (termWidth < minLineWidth) {
+            AnsiConsole.Write($"Progress: {{currentValue}}/{maxValue}");
+            return;
+        }
+
+        StringBuilder builder = new(Markup.Escape(prefix));
+
+        int width = termWidth - wrapperWidth;
+        int filled = width * currentValue / maxValue;
+
+        builder.Append("[lime]");
+        builder.Append('#', filled);
+
+        if (filled < width)
+            builder.Append('>');
+
+        builder.Append("[/]");
+
+        int widthMinusFilled = width - filled;
+
+        if (widthMinusFilled > 1) {
+            int redPathWidth = widthMinusFilled - 1;
+            builder.Append("[red]");
+            builder.Append('-', redPathWidth);
+            builder.Append("[/]");
+        }
+
+        builder.Append(Markup.Escape($"] {currentValue,3}/{maxValue}"));
+        AnsiConsole.Markup(builder.ToString());
+    }
+
+    void ShowPrompt() {
+        if (DoneStatus is not Pending) {
+            AnsiConsole.Markup("[bold]n[/]:[underline]next[/] / ");
+        }
+
+        if (ManualRun) {
+            ShowKey('r', ":run / ");
+        }
+
+        if (!IsShowHint) {
+            ShowKey('h', ":hint / ");
+        }
+
+        ShowKey('l', ":list / ");
+        ShowKey('c', ":check all / ");
+        ShowKey('x', ":reset / ");
+        ShowKey('q', ":quit ? ");
+
+        return;
+
+        static void ShowKey(char key, string postfix) =>
+            AnsiConsole.Markup($"[bold]{key}[/]{postfix}");
+    }
 }

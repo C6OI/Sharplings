@@ -1,18 +1,35 @@
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
-using Sharplings.Terminal;
+using Spectre.Console;
 
 namespace Sharplings;
 
 /// See <see cref="ExerciseInfo"/>
 class Exercise : RunnableExercise {
-    public required string? FullPath { get; init; }
     public required string Hint { get; init; }
     public required bool Done { get; set; }
+
+    public void TerminalFileLink(bool emitFileLinks) {
+        string path;
+
+        if (emitFileLinks) {
+            path = "\e]8;;file://";
+            path += Path;
+            path += "\e\\";
+            // Only this part is visible.
+            path += Path;
+            path += "\e]8;;\e\\";
+        } else {
+            path = Path;
+        }
+
+        AnsiConsole.MarkupLineInterpolated($"[blue underline]{path}[/]");
+    }
 }
 
 abstract class RunnableExercise {
@@ -24,21 +41,22 @@ abstract class RunnableExercise {
     public string Path => GetPath("Exercises");
     public string SolutionPath => GetPath("Solutions");
 
-    async Task<bool> Run(string path, bool forceStrictAnalyzer, TerminalOutputData outputData) {
-        outputData.CompilationOutput = "";
-        outputData.ExerciseOutput = "";
+    async Task<bool> Run(string path, bool forceStrictAnalyzer, StringBuilder output) {
+        output.Clear();
 
         string scriptContent = await File.ReadAllTextAsync(path);
 
-        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(scriptContent);
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(scriptContent, encoding: Encoding.Default, path: path);
         CSharpCompilation compilation = CSharpCompilation.Create(System.IO.Path.GetFileName(path))
             .AddSyntaxTrees(syntaxTree)
             .AddReferences(GetDefaultMetadataReferences());
 
-        await using MemoryStream memoryStream = new();
-        EmitResult emitResult = compilation.Emit(memoryStream);
+        await using MemoryStream assemblyStream = new();
+        await using MemoryStream pdbStream = new();
 
-        outputData.CompilationOutput = string.Join(Environment.NewLine, emitResult.Diagnostics);
+        EmitResult emitResult = compilation.Emit(assemblyStream, pdbStream);
+
+        output.AppendLine(Markup.Escape(string.Join(Environment.NewLine, emitResult.Diagnostics)));
         if (!emitResult.Success) return false;
 
         // todo maybe use `diagnostic.DefaultSeverity`
@@ -52,7 +70,7 @@ abstract class RunnableExercise {
                 return false;
         }
 
-        Assembly assembly = Assembly.Load(memoryStream.ToArray());
+        Assembly assembly = Assembly.Load(assemblyStream.ToArray(), pdbStream.ToArray());
 
         if (assembly.EntryPoint == null)
             throw new EntryPointNotFoundException($"Script {path} should have an entry point");
@@ -62,15 +80,20 @@ abstract class RunnableExercise {
 
         StringWriter redirectedWriter = new();
 
+        output.AppendLine("[underline]Output[/]");
+
         try {
             Console.SetOut(redirectedWriter);
             Console.SetError(redirectedWriter);
 
             assembly.EntryPoint.Invoke(null, null);
-            outputData.ExerciseOutput = redirectedWriter.ToString();
+            output.AppendLine(Markup.Escape(redirectedWriter.ToString()));
             return true;
+        } catch (TargetInvocationException e) when (e.InnerException != null) {
+            output.AppendLine(Markup.Escape(e.InnerException.ToString()));
+            return false;
         } catch (Exception e) {
-            outputData.ExerciseOutput = e.ToString();
+            output.AppendLine(Markup.Escape(e.ToString()));
             return false;
         } finally {
             Console.SetOut(originalOut);
@@ -78,11 +101,11 @@ abstract class RunnableExercise {
         }
     }
 
-    public Task<bool> RunExercise(TerminalOutputData outputData) =>
-        Run(Path, false, outputData);
+    public Task<bool> RunExercise(StringBuilder output) =>
+        Run(Path, false, output);
 
-    public Task<bool> RunSolution(TerminalOutputData outputData) =>
-        Run(SolutionPath, true, outputData);
+    public Task<bool> RunSolution(StringBuilder output) =>
+        Run(SolutionPath, true, output);
 
     protected string GetPath(string from) {
         string path = !string.IsNullOrWhiteSpace(Directory)

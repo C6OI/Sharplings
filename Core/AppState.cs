@@ -24,31 +24,19 @@ class AppState {
     public string FinalMessage { get; }
     public bool OfficialExercises { get; }
 
+    // VS Code has its own file link handling
+    public bool EmitFileLinks { get; } = Environment.GetEnvironmentVariable("TERM_PROGRAM") != "vscode";
+
     public Exercise CurrentExercise => Exercises[CurrentExerciseIndex];
 
     public static async Task<(AppState appState, StateFileParseResult parseResult)> ParseAsync(IList<ExerciseInfo> exerciseInfos, string finalMessage) {
-        string exercisesPath = Path.GetFullPath("Exercises");
-
-        List<Exercise> exercises = exerciseInfos.Select(info => {
-            string name = info.Name;
-            string? dir = info.Directory;
-            string hint = info.Hint;
-
-            string fullPath = !string.IsNullOrWhiteSpace(dir)
-                ? Path.Combine(exercisesPath, dir)
-                : exercisesPath;
-
-            fullPath = Path.Combine(fullPath, $"{name}.cs");
-
-            return new Exercise {
-                Directory = dir,
-                Name = name,
-                FullPath = fullPath,
-                Test = info.Test,
-                StrictAnalyzer = info.StrictAnalyzer,
-                Hint = hint,
-                Done = false
-            };
+        List<Exercise> exercises = exerciseInfos.Select(info => new Exercise {
+            Directory = info.Directory,
+            Name = info.Name,
+            Test = info.Test,
+            StrictAnalyzer = info.StrictAnalyzer,
+            Hint = info.Hint,
+            Done = false
         }).ToList();
 
         int currentExerciseIndex = 0;

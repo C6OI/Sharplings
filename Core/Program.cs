@@ -10,7 +10,11 @@ try {
     });
 } catch (Exception e) {
     AnsiConsole.WriteException(e, new ExceptionSettings {
+#if DEBUG
+        Format = ExceptionFormats.Default,
+#else
         Format = ExceptionFormats.NoStackTrace,
+#endif
         Style = new ExceptionStyle {
             Message = Style.Parse("red")
         }
