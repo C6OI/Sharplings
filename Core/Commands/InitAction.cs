@@ -25,13 +25,14 @@ class InitAction : AsynchronousCommandLineAction {
         """;
 
     public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default) {
-        string sharplingsDir = Path.Combine(Directory.GetCurrentDirectory(), "Sharplings");
+        DirectoryInfo dirInfo = parseResult.GetValue<DirectoryInfo>("--output") ?? new DirectoryInfo("Sharplings");
+        string sharplingsDir = dirInfo.FullName;
 
         if (Directory.Exists(sharplingsDir)) {
-            throw new InvalidOperationException("""
-            A directory with the name `Sharplings` already exists in the current directory.
+            throw new InvalidOperationException($"""
+            A directory with the name `{dirInfo.Name}` already exists in the current directory.
             You probably already initialized Sharplings.
-            Run `cd Sharplings`
+            Run `cd {dirInfo.Name}`
             Then run `Sharplings` again
             """);
         }
@@ -53,9 +54,9 @@ class InitAction : AsynchronousCommandLineAction {
             """);
         }
 
-        AnsiConsole.WriteLine("""
-        This command will create the directory `Sharplings/` which will contain the exercises.
-        Press ENTER to continue 
+        AnsiConsole.WriteLine($"""
+        This command will create the directory `{dirInfo.Name}/` which will contain the exercises.
+        Press ENTER to continue
         """);
         Console.ReadLine();
         AnsiConsole.Clear();
@@ -96,7 +97,7 @@ class InitAction : AsynchronousCommandLineAction {
         Directory.CreateDirectory(internalScriptsDir);
 
         AnsiConsole.MarkupLine("[lime]Initialization done ✓[/]");
-        AnsiConsole.MarkupLine("[bold]Run `cd Sharplings` to go into the generated directory.\n" +
+        AnsiConsole.MarkupLine($"[bold]Run `cd {dirInfo.Name}` to go into the generated directory.\n" +
                                "Then run `Sharplings` to get started.[/]");
 
         return 0;
