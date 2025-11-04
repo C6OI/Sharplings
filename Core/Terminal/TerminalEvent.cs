@@ -15,7 +15,6 @@ static class TerminalEvent {
         try {
             while (!cancellationToken.IsCancellationRequested) {
                 ConsoleKeyInfo key = Console.ReadKey(true);
-                AnsiConsole.WriteLine(key.KeyChar);
 
                 if (InputPauseGuard.ExerciseRunning) continue;
 

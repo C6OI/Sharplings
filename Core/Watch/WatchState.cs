@@ -30,7 +30,7 @@ class WatchState {
 
     Terminal.Terminal Terminal { get; }
     AppState AppState { get; }
-    bool ShowHint { get; set; } = false;
+    bool IsShowHint { get; set; } = false;
     IDoneStatus DoneStatus { get; set; } = new Pending();
     bool ManualRun { get; }
     int TerminalWidth { get; } = AnsiConsole.Profile.Width;
@@ -40,7 +40,7 @@ class WatchState {
     public async Task RunCurrentExercise() {
         using InputPauseGuard _ = new();
 
-        ShowHint = false; // ?
+        IsShowHint = false; // ?
 
         AnsiConsole.WriteLine($"\nChecking the exercise `{AppState.CurrentExercise.Name}`. Please wait…");
 
@@ -72,4 +72,65 @@ class WatchState {
 
         return await AppState.DoneCurrentExercise(true);
     }
+
+    public void ShowHint() {
+        if (IsShowHint) return;
+
+        IsShowHint = true;
+        Terminal.OutputData = Terminal.OutputData with {
+            ExerciseOutput = AppState.CurrentExercise.Hint // todo
+        };
+    }
+
+    public async Task<ExercisesProgress> CheckAllExercises() {
+        // Ignore any input until checking all exercises is done.
+        using InputPauseGuard _ = new();
+
+        int? firstPendingExerciseIndex = await AppState.CheckAllExercises();
+
+        if (firstPendingExerciseIndex != null) {
+            if (!AppState.CurrentExercise.Done)
+                return ExercisesProgress.CurrentPending;
+
+            await AppState.SetCurrentExerciseIndex(firstPendingExerciseIndex.Value);
+            return ExercisesProgress.NewPending;
+        }
+
+        AppState.RenderFinalMessage();
+        return ExercisesProgress.AllDone;
+    }
+
+    public async Task ResetExercise() {
+        AnsiConsole.Clear();
+
+        AnsiConsole.WriteLine($"Resetting will undo all your changes to the file {AppState.CurrentExercise.Path}");
+        AnsiConsole.Write("Reset (y/n)? ");
+
+        while (true) {
+            ConsoleKeyInfo key = Console.ReadKey();
+
+            switch (key.Key) {
+                case ConsoleKey.Y: {
+                    await AppState.ResetCurrentExercise();
+
+                    if (ManualRun) await RunCurrentExercise();
+                    break;
+                }
+
+                case ConsoleKey.N: {
+                    RefreshTerminal();
+                    break;
+                }
+
+                default: continue;
+            }
+
+            break;
+        }
+
+        await TermEventUnpauseWriter.WriteAsync(0);
+    }
+
+    [Obsolete("Will be rewritten soon")]
+    public void RefreshTerminal() => Terminal.OutputData = Terminal.OutputData;
 }

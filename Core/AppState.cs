@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Sharplings.Utils;
@@ -180,6 +181,14 @@ class AppState {
         return result;
     }
 
+    public async Task<string> ResetCurrentExercise() {
+        await SetPending(CurrentExerciseIndex);
+        Exercise exercise = CurrentExercise;
+        await Reset(CurrentExerciseIndex, exercise.Path);
+
+        return exercise.Path;
+    }
+
     public void RenderFinalMessage() {
         AnsiConsole.Clear();
         AnsiConsole.WriteLine("You made it!");
@@ -229,6 +238,31 @@ class AppState {
     async Task<int?> CheckAllExercisesImpl() {
         // todo
         return -1;
+    }
+
+    async Task Reset(int exerciseIndex, string path) {
+        if (OfficialExercises) {
+            await EmbeddedFilesFactory.Instance.WriteExerciseToDisk(exerciseIndex, path);
+            return;
+        }
+
+        Process? process = Process.Start(new ProcessStartInfo {
+            FileName = "git",
+            ArgumentList = { "stash", "push", "--", path },
+            RedirectStandardInput = false,
+            RedirectStandardOutput = false,
+            RedirectStandardError = true
+        });
+
+        if (process == null)
+            throw new InvalidOperationException($"Failed to run `git stash push -- {path}`");
+
+        await process.WaitForExitAsync();
+
+        if (process.ExitCode != 0) {
+            string error = await process.StandardError.ReadToEndAsync();
+            throw new InvalidOperationException($"`git stash push -- {path}` didn't run successfully: {error}");
+        }
     }
 }
 

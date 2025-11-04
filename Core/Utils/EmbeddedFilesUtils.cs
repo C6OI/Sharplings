@@ -35,4 +35,12 @@ static class EmbeddedFilesUtils {
         await File.WriteAllBytesAsync(path, exerciseFiles.Solution);
         return path;
     }
+
+    public static async Task WriteExerciseToDisk(this EmbeddedFiles embeddedFiles, int index, string path) {
+        ExerciseFiles exerciseFiles = embeddedFiles.ExerciseFiles[index];
+        ExerciseDir dir = embeddedFiles.ExerciseDirs[exerciseFiles.DirInd];
+
+        await dir.InitOnDiskAsync();
+        await File.WriteAllBytesAsync(path, exerciseFiles.Exercise);
+    }
 }

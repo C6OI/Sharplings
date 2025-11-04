@@ -72,11 +72,16 @@ static class Watcher {
                     case Input { InputEvent: InputEvent.Next }: {
                         switch (await watchState.NextExercise()) {
                             case ExercisesProgress.AllDone: goto ExitLoop;
-                            case ExercisesProgress.CurrentPending: break;
 
-                            case ExercisesProgress.NewPending:
+                            case ExercisesProgress.CurrentPending: {
+                                watchState.RefreshTerminal();
+                                break;
+                            }
+
+                            case ExercisesProgress.NewPending: {
                                 await watchState.RunCurrentExercise();
                                 break;
+                            }
 
                             default: throw new ArgumentOutOfRangeException();
                         }
@@ -90,7 +95,7 @@ static class Watcher {
                     }
 
                     case Input { InputEvent: InputEvent.Hint }: {
-                        // todo
+                        watchState.ShowHint();
                         break;
                     }
 
@@ -99,12 +104,23 @@ static class Watcher {
                     }
 
                     case Input { InputEvent: InputEvent.CheckAll }: {
-                        // todo
+                        switch (await watchState.CheckAllExercises()) {
+                            case ExercisesProgress.AllDone: goto ExitLoop;
+                            case ExercisesProgress.CurrentPending: break;
+
+                            case ExercisesProgress.NewPending: {
+                                await watchState.RunCurrentExercise();
+                                break;
+                            }
+
+                            default: throw new ArgumentOutOfRangeException();
+                        }
+
                         break;
                     }
 
                     case Input { InputEvent: InputEvent.Reset }: {
-                        // todo
+                        await watchState.ResetExercise();
                         break;
                     }
 
@@ -123,7 +139,7 @@ static class Watcher {
                     }
 
                     case TerminalResize(var width): {
-
+                        watchState.RefreshTerminal();
                         break;
                     }
 
