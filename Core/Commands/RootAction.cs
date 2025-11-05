@@ -69,8 +69,47 @@ class RootAction(
                 return await Run.RunExercise(appState);
             }
 
+            case Subcommand.CheckAll: {
+                int firstPendingExerciseIndex = await appState.CheckAllExercises();
+                if (firstPendingExerciseIndex == -1) {
+                    appState.RenderFinalMessage();
+                    break;
+                }
+
+                if (appState.CurrentExercise.Done) {
+                    await appState.SetCurrentExerciseIndex(firstPendingExerciseIndex);
+                }
+
+                AnsiConsole.WriteLine();
+                AnsiConsole.WriteLine();
+
+                AnsiConsole.Write(appState.ExercisesPending == 1
+                    ? "One exercise pending: "
+                    : $"{appState.ExercisesPending}/{appState.Exercises.Count} exercises pending. The first: ");
+
+                AnsiConsole.MarkupLineInterpolated($"[blue underline]{appState.CurrentExercise.TerminalFileLink(appState.EmitFileLinks)}[/]");
+                return -1;
+            }
+
+            case Subcommand.Reset: {
+                string exerciseName = parseResult.GetRequiredValue<string>("name");
+
+                await appState.SetCurrentExerciseByName(exerciseName);
+                string exercisePath = await appState.ResetCurrentExercise();
+
+                AnsiConsole.MarkupLineInterpolated(
+                    $"The exercise [blue underline]{Exercise.TerminalFileLink(exercisePath, appState.EmitFileLinks)}[/] has been reset");
+                break;
+            }
+
             case Subcommand.Hint: {
-                throw new NotImplementedException();
+                string? exerciseName = parseResult.GetValue<string>("name");
+                if (!string.IsNullOrWhiteSpace(exerciseName)) {
+                    await appState.SetCurrentExerciseByName(exerciseName);
+                }
+
+                AnsiConsole.WriteLine(appState.CurrentExercise.Hint);
+                break;
             }
 
             default: throw new ArgumentOutOfRangeException(nameof(subcommand), subcommand, null);

@@ -17,8 +17,9 @@ class AppState {
         OfficialExercises = officialExercises;
     }
 
-    public int CurrentExerciseIndex { get; set; }
-    public int ExercisesDone { get; set; }
+    public int CurrentExerciseIndex { get; private set; }
+    public int ExercisesDone { get; private set; }
+    public int ExercisesPending => Exercises.Count - ExercisesDone;
     public List<Exercise> Exercises { get; }
     public FileStream StateFileStream { get; }
     public string FinalMessage { get; }
@@ -142,7 +143,7 @@ class AppState {
         else AnsiConsole.WriteLine();
 
         int? firstPendingExerciseIndex = await CheckAllExercises();
-        if (firstPendingExerciseIndex != null) {
+        if (firstPendingExerciseIndex != -1) {
             await SetCurrentExerciseIndex(firstPendingExerciseIndex.Value);
             return ExercisesProgress.NewPending;
         }
@@ -171,9 +172,9 @@ class AppState {
     }
 
     /// Return the exercise index of the first pending exercise found.
-    public async Task<int?> CheckAllExercises() {
+    public async Task<int> CheckAllExercises() {
         AnsiConsole.Cursor.Hide();
-        int? result = await CheckAllExercisesImpl();
+        int result = await CheckAllExercisesImpl();
         AnsiConsole.Cursor.Show();
 
         return result;
@@ -233,7 +234,7 @@ class AppState {
         return prevIndex == -1 ? null : prevIndex;
     }
 
-    async Task<int?> CheckAllExercisesImpl() {
+    async Task<int> CheckAllExercisesImpl() {
         // todo
         return -1;
     }

@@ -14,6 +14,8 @@ class Exercise : RunnableExercise {
     public required string Hint { get; init; }
     public required bool Done { get; set; }
 
+    public string TerminalFileLink(bool emitFileLinks) => TerminalFileLink(Path, emitFileLinks);
+
     public static void SolutionLinkLine(string solutionPath, bool emitFileLinks) {
         AnsiConsole.Markup("[bold]Solution[/] for comparison: ");
 

@@ -81,7 +81,7 @@ class WatchState {
 
         int? firstPendingExerciseIndex = await AppState.CheckAllExercises();
 
-        if (firstPendingExerciseIndex != null) {
+        if (firstPendingExerciseIndex != -1) {
             if (!AppState.CurrentExercise.Done)
                 return ExercisesProgress.CurrentPending;
 
@@ -159,7 +159,7 @@ class WatchState {
         AnsiConsole.WriteLine();
 
         AnsiConsole.MarkupLineInterpolated(
-            $"Current exercise: [blue underline]{Exercise.TerminalFileLink(AppState.CurrentExercise.Path, AppState.EmitFileLinks)}[/]");
+            $"Current exercise: [blue underline]{AppState.CurrentExercise.TerminalFileLink(AppState.EmitFileLinks)}[/]");
         AnsiConsole.WriteLine();
 
         ShowPrompt();
