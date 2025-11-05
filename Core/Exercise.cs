@@ -51,8 +51,8 @@ abstract class RunnableExercise {
     public string Path => GetPath("Exercises");
     public string SolutionPath => GetPath("Solutions");
 
-    async Task<bool> Run(string path, bool forceStrictAnalyzer, StringBuilder output) {
-        output.Clear();
+    async Task<bool> Run(string path, bool forceStrictAnalyzer, StringBuilder? output) {
+        output?.Clear();
 
         string scriptContent = await File.ReadAllTextAsync(path);
 
@@ -66,7 +66,7 @@ abstract class RunnableExercise {
 
         EmitResult emitResult = compilation.Emit(assemblyStream, pdbStream);
 
-        output.AppendLine(Markup.Escape(string.Join(Environment.NewLine, emitResult.Diagnostics)));
+        output?.AppendLine(Markup.Escape(string.Join(Environment.NewLine, emitResult.Diagnostics)));
         if (!emitResult.Success) return false;
 
         // todo maybe use `diagnostic.DefaultSeverity`
@@ -90,20 +90,20 @@ abstract class RunnableExercise {
 
         StringWriter redirectedWriter = new();
 
-        output.AppendLine("[underline]Output[/]");
+        output?.AppendLine("[underline]Output[/]");
 
         try {
             Console.SetOut(redirectedWriter);
             Console.SetError(redirectedWriter);
 
             assembly.EntryPoint.Invoke(null, null);
-            output.AppendLine(Markup.Escape(redirectedWriter.ToString()));
+            output?.AppendLine(Markup.Escape(redirectedWriter.ToString()));
             return true;
         } catch (TargetInvocationException e) when (e.InnerException != null) {
-            output.AppendLine(Markup.Escape(e.InnerException.ToString()));
+            output?.AppendLine(Markup.Escape(e.InnerException.ToString()));
             return false;
         } catch (Exception e) {
-            output.AppendLine(Markup.Escape(e.ToString()));
+            output?.AppendLine(Markup.Escape(e.ToString()));
             return false;
         } finally {
             Console.SetOut(originalOut);
@@ -111,10 +111,10 @@ abstract class RunnableExercise {
         }
     }
 
-    public Task<bool> RunExercise(StringBuilder output) =>
+    public Task<bool> RunExercise(StringBuilder? output) =>
         Run(Path, false, output);
 
-    public Task<bool> RunSolution(StringBuilder output) =>
+    public Task<bool> RunSolution(StringBuilder? output) =>
         Run(SolutionPath, true, output);
 
     protected string GetPath(string from) {

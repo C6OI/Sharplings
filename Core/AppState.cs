@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading.Channels;
+using Sharplings.Terminal;
 using Sharplings.Utils;
 using Spectre.Console;
 
@@ -235,8 +237,102 @@ class AppState {
     }
 
     async Task<int> CheckAllExercisesImpl() {
-        // todo
-        return -1;
+        int termWidth = AnsiConsole.Profile.Width;
+        CheckProgressVisualiser progressVisualiser = new(termWidth);
+
+        CheckProgress[] progresses = new CheckProgress[Exercises.Count];
+
+        (ChannelWriter<(int, CheckProgress)> progressWriter, ChannelReader<(int, CheckProgress)> progressReader) =
+            Channel.CreateUnbounded<(int, CheckProgress)>(new UnboundedChannelOptions {
+                SingleReader = true
+            });
+
+        Task parallelCheckTask = Parallel.ForAsync(0, Exercises.Count, async (index, token) => {
+            Exercise exercise = Exercises[index];
+            await progressWriter.WriteAsync((index, CheckProgress.Checking), token);
+
+            CheckProgress progress = await exercise.RunExercise(null) switch {
+                true => CheckProgress.Done,
+                false => CheckProgress.Pending
+            };
+
+            await progressWriter.WriteAsync((index, progress), token);
+        });
+
+        Task<bool>? waitToReadTask = null;
+
+        while (true) {
+            waitToReadTask ??= progressReader.WaitToReadAsync().AsTask();
+            Task task = await Task.WhenAny(waitToReadTask, parallelCheckTask);
+
+            if (task == waitToReadTask) {
+                bool readAvailable = await waitToReadTask;
+                if (!readAvailable) continue;
+
+                if (!progressReader.TryRead(out (int, CheckProgress) output))
+                    throw new InvalidOperationException($"WaitToReadAsync returned {readAvailable}, but TryRead returned false");
+
+                progresses[output.Item1] = output.Item2;
+                progressVisualiser.Update(progresses);
+
+                waitToReadTask = null;
+            } else {
+                progressWriter.TryComplete();
+                break;
+            }
+        }
+
+        await foreach ((int index, CheckProgress progress) in progressReader.ReadAllAsync()) {
+            progresses[index] = progress;
+            progressVisualiser.Update(progresses);
+        }
+
+        int firstPendingExerciseIndex = -1;
+
+        for (int exerciseIndex = 0; exerciseIndex < progresses.Length; exerciseIndex++) {
+            switch (progresses[exerciseIndex]) {
+                case CheckProgress.Done: {
+                    SetStatus(exerciseIndex, true);
+                    break;
+                }
+
+                case CheckProgress.Pending: {
+                    SetStatus(exerciseIndex, false);
+
+                    if (firstPendingExerciseIndex == -1)
+                        firstPendingExerciseIndex = exerciseIndex;
+
+                    break;
+                }
+
+                case CheckProgress.None or CheckProgress.Checking: {
+                    // If we got an error while checking all exercises in parallel,
+                    // it could be because we exceeded the limit of open file descriptors.
+                    // Therefore, try running exercises with errors sequentially.
+                    progresses[exerciseIndex] = CheckProgress.Checking;
+                    progressVisualiser.Update(progresses);
+
+                    Exercise exercise = Exercises[exerciseIndex];
+                    bool success = await exercise.RunExercise(null);
+
+                    if (success) {
+                        progresses[exerciseIndex] = CheckProgress.Done;
+                    } else {
+                        progresses[exerciseIndex] = CheckProgress.Pending;
+
+                        if (firstPendingExerciseIndex == -1)
+                            firstPendingExerciseIndex = exerciseIndex;
+                    }
+
+                    SetStatus(exerciseIndex, success);
+                    progressVisualiser.Update(progresses);
+                    break;
+                }
+            }
+        }
+
+        await Write();
+        return firstPendingExerciseIndex;
     }
 
     async Task Reset(int exerciseIndex, string path) {
