@@ -1,13 +1,15 @@
-using System.Diagnostics;
 using System.Text;
 using System.Threading.Channels;
+using JetBrains.Annotations;
 using Sharplings.Terminal;
 using Sharplings.Utils;
 using Spectre.Console;
+using Progress = Sharplings.Terminal.Progress;
 
 namespace Sharplings.Watch;
 
-class WatchState {
+[MustDisposeResource]
+class WatchState : IDisposable {
     public WatchState(AppState appState, ChannelWriter<IWatchEvent> watchEventWriter, bool manualRun, CancellationToken cancellationToken) {
         (TermEventUnpauseWriter, ChannelReader<byte> termEventUnpauseReader) =
             Channel.CreateBounded<byte>(new BoundedChannelOptions(1) {
@@ -18,9 +20,10 @@ class WatchState {
         AppState = appState;
         ManualRun = manualRun;
 
+        TermEventHandlerCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         TermEventHandlerTask =
-            Task.Run(() => TerminalEvent.TerminalEventHandler(watchEventWriter, termEventUnpauseReader, manualRun, cancellationToken),
-                cancellationToken);
+            Task.Run(() => TerminalEvent.TerminalEventHandler(watchEventWriter, termEventUnpauseReader, manualRun, TermEventHandlerCTS.Token),
+                TermEventHandlerCTS.Token);
     }
 
     AppState AppState { get; }
@@ -31,6 +34,7 @@ class WatchState {
     bool ManualRun { get; }
     ChannelWriter<byte> TermEventUnpauseWriter { get; }
     Task TermEventHandlerTask { get; }
+    CancellationTokenSource TermEventHandlerCTS { get; }
 
     public async Task RunCurrentExercise() {
         using InputPauseGuard _ = new();
@@ -155,7 +159,8 @@ class WatchState {
             AnsiConsole.WriteLine();
         }
 
-        ProgressBar(AppState.ExercisesDone, AppState.Exercises.Count, TerminalWidth);
+        string progressBar = Progress.BuildProgressBar(AppState.ExercisesDone, AppState.Exercises.Count, TerminalWidth);
+        AnsiConsole.Markup(progressBar);
         AnsiConsole.WriteLine();
 
         AnsiConsole.MarkupLineInterpolated(
@@ -163,47 +168,6 @@ class WatchState {
         AnsiConsole.WriteLine();
 
         ShowPrompt();
-    }
-
-    static void ProgressBar(int currentValue, int maxValue, int termWidth) {
-        Debug.Assert(maxValue <= 999);
-        Debug.Assert(currentValue <= maxValue);
-
-        const string prefix = "Progress: [";
-        const int prefixWidth = 11;
-        const int postfixWidth = 9;
-        const int wrapperWidth = prefixWidth + postfixWidth;
-        const int minLineWidth = wrapperWidth + 4;
-
-        if (termWidth < minLineWidth) {
-            AnsiConsole.Write($"Progress: {{currentValue}}/{maxValue}");
-            return;
-        }
-
-        StringBuilder builder = new(Markup.Escape(prefix));
-
-        int width = termWidth - wrapperWidth;
-        int filled = width * currentValue / maxValue;
-
-        builder.Append("[lime]");
-        builder.Append('#', filled);
-
-        if (filled < width)
-            builder.Append('>');
-
-        builder.Append("[/]");
-
-        int widthMinusFilled = width - filled;
-
-        if (widthMinusFilled > 1) {
-            int redPathWidth = widthMinusFilled - 1;
-            builder.Append("[red]");
-            builder.Append('-', redPathWidth);
-            builder.Append("[/]");
-        }
-
-        builder.Append(Markup.Escape($"] {currentValue,3}/{maxValue}"));
-        AnsiConsole.Markup(builder.ToString());
     }
 
     void ShowPrompt() {
@@ -228,5 +192,10 @@ class WatchState {
 
         static void ShowKey(char key, string postfix) =>
             AnsiConsole.Markup($"[bold]{key}[/]{postfix}");
+    }
+
+    public void Dispose() {
+        TermEventHandlerCTS.Cancel();
+        TermEventHandlerTask.Wait(TimeSpan.FromMilliseconds(250));
     }
 }

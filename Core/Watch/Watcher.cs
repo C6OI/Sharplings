@@ -29,7 +29,7 @@ static class Watcher {
         while (true) {
             switch (await RunWatch(appState, manualRun, cancellationToken)) {
                 case WatchExit.Shutdown: return;
-                case WatchExit.List: throw new NotImplementedException();
+                case WatchExit.List: await List.ShowList(appState, cancellationToken); break;
                 default: throw new ArgumentOutOfRangeException();
             }
         }
@@ -63,7 +63,7 @@ static class Watcher {
             fileSystemWatcher.Error += notifyEventHandler.FileSystemWatcherOnError;
         }
 
-        WatchState watchState = new(appState, watchEventWriter, manualRun, cancellationToken);
+        using WatchState watchState = new(appState, watchEventWriter, manualRun, cancellationToken);
         await watchState.RunCurrentExercise();
 
         try {
@@ -102,7 +102,7 @@ static class Watcher {
                     case Input { InputEvent: InputEvent.CheckAll }: {
                         switch (await watchState.CheckAllExercises()) {
                             case ExercisesProgress.AllDone: goto ExitLoop;
-                            case ExercisesProgress.CurrentPending: break;
+                            case ExercisesProgress.CurrentPending: watchState.Render(); break;
 
                             case ExercisesProgress.NewPending: {
                                 await watchState.RunCurrentExercise();

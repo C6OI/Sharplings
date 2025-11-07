@@ -2,7 +2,7 @@ using Sharplings.Terminal;
 
 namespace Sharplings.Watch;
 
-interface IWatchEvent; // todo
+interface IWatchEvent;
 
 record struct FileChange(int ExerciseIndex) : IWatchEvent;
 

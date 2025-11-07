@@ -190,6 +190,17 @@ class AppState {
         return exercise.Path;
     }
 
+    public async Task<string> ResetExerciseByIndex(int index) {
+        if (index >= Exercises.Count)
+            throw new IndexOutOfRangeException("The current exercise index is higher than the number of exercises");
+
+        await SetPending(index);
+        Exercise exercise = Exercises[index];
+        await Reset(index, exercise.Path);
+
+        return exercise.Name;
+    }
+
     public void RenderFinalMessage() {
         AnsiConsole.Clear();
         AnsiConsole.WriteLine("You made it!");
