@@ -149,13 +149,13 @@ class WatchState : IDisposable {
         }
 
         if (DoneStatus is not Pending) {
-            AnsiConsole.MarkupLine("[bold lime]Exercise done ✓[/]");
+            AnsiConsole.MarkupLine("[bold lime]Exercise done[/]");
 
             if (DoneStatus is DoneWithSolution(var solutionPath)) {
                 Exercise.SolutionLinkLine(solutionPath, AppState.EmitFileLinks);
             }
 
-            AnsiConsole.WriteLine("When done experimenting, enter `n` to move on to the next exercise #️⃣");
+            AnsiConsole.WriteLine("When done experimenting, enter `n` to move on to the next exercise");
             AnsiConsole.WriteLine();
         }
 

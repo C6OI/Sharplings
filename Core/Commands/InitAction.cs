@@ -95,7 +95,7 @@ class InitAction : AsynchronousCommandLineAction {
         string internalScriptsDir = Path.Combine("Exercises", "Internal");
         Directory.CreateDirectory(internalScriptsDir);
 
-        AnsiConsole.MarkupLineInterpolated($"[lime]Initialization done {Emoji.Known.CheckMark}[/]");
+        AnsiConsole.MarkupLine("[lime]Initialization done[/]");
         AnsiConsole.MarkupLine($"[bold]Run `cd {dirInfo.Name}` to go into the generated directory.\n" +
                                "Then run `Sharplings` to get started.[/]");
 
