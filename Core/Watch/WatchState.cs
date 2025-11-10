@@ -10,7 +10,12 @@ namespace Sharplings.Watch;
 
 [MustDisposeResource]
 class WatchState : IDisposable {
-    public WatchState(AppState appState, ChannelWriter<IWatchEvent> watchEventWriter, bool manualRun, CancellationToken cancellationToken) {
+    public WatchState(
+        AppState appState,
+        [HandlesResourceDisposal] FileSystemWatcher? exercisesWatcher,
+        ChannelWriter<IWatchEvent> watchEventWriter,
+        bool manualRun,
+        CancellationToken cancellationToken) {
         (TermEventUnpauseWriter, ChannelReader<byte> termEventUnpauseReader) =
             Channel.CreateBounded<byte>(new BoundedChannelOptions(1) {
                 SingleReader = true,
@@ -18,6 +23,7 @@ class WatchState : IDisposable {
             });
 
         AppState = appState;
+        ExercisesWatcher = exercisesWatcher;
         ManualRun = manualRun;
 
         TermEventHandlerCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -33,6 +39,7 @@ class WatchState : IDisposable {
     int TerminalWidth { get; set; } = AnsiConsole.Profile.Width;
     bool ManualRun { get; }
     ChannelWriter<byte> TermEventUnpauseWriter { get; }
+    FileSystemWatcher? ExercisesWatcher { get; }
     Task TermEventHandlerTask { get; }
     CancellationTokenSource TermEventHandlerCTS { get; }
 
@@ -196,6 +203,7 @@ class WatchState : IDisposable {
 
     public void Dispose() {
         TermEventHandlerCTS.Cancel();
+        ExercisesWatcher?.Dispose();
         TermEventHandlerTask.Wait(TimeSpan.FromMilliseconds(250));
     }
 }

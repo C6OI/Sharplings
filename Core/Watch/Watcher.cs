@@ -42,15 +42,13 @@ static class Watcher {
                 SingleReader = true
             });
 
-        // We store the reference to the FileSystemWatcher here because GC will collect it otherwise
-        // ReSharper disable once TooWideLocalVariableScope
-        FileSystemWatcher fileSystemWatcher;
+        FileSystemWatcher? exercisesWatcher = null;
 
         if (!manualRun) {
             NotifyEventHandler notifyEventHandler =
                 new(watchEventWriter, appState.Exercises.Select(exercise => exercise.Name).ToList(), cancellationToken);
 
-            fileSystemWatcher = new FileSystemWatcher {
+            exercisesWatcher = new FileSystemWatcher {
                 Path = "Exercises",
                 Filter = "*.cs",
                 IncludeSubdirectories = true,
@@ -58,12 +56,12 @@ static class Watcher {
                 EnableRaisingEvents = true,
             };
 
-            fileSystemWatcher.Changed += notifyEventHandler.OnFileSystemWatcherEvent;
-            fileSystemWatcher.Renamed += notifyEventHandler.OnFileSystemWatcherEvent;
-            fileSystemWatcher.Error += notifyEventHandler.FileSystemWatcherOnError;
+            exercisesWatcher.Changed += notifyEventHandler.OnFileSystemWatcherEvent;
+            exercisesWatcher.Renamed += notifyEventHandler.OnFileSystemWatcherEvent;
+            exercisesWatcher.Error += notifyEventHandler.FileSystemWatcherOnError;
         }
 
-        using WatchState watchState = new(appState, watchEventWriter, manualRun, cancellationToken);
+        using WatchState watchState = new(appState, exercisesWatcher, watchEventWriter, manualRun, cancellationToken);
         await watchState.RunCurrentExercise();
 
         try {

@@ -7,13 +7,12 @@ class NotifyEventHandler {
     const int DebounceDurationMs = 200;
 
     public NotifyEventHandler(ChannelWriter<IWatchEvent> watchEventWriter, IList<string> exerciseNames, CancellationToken cancellationToken) {
-        (ChannelWriter<int> updateWriter, ChannelReader<int> updateReader) = Channel.CreateBounded<int>(new BoundedChannelOptions(1) {
+        (UpdateWriter, ChannelReader<int> updateReader) = Channel.CreateBounded<int>(new BoundedChannelOptions(1) {
             SingleReader = true,
             FullMode = BoundedChannelFullMode.Wait
         });
 
         WatchEventWriter = watchEventWriter;
-        UpdateWriter = updateWriter;
         ExerciseNames = exerciseNames;
 
         DebounceTask = Task.Run(() => DebounceLoop(updateReader, cancellationToken), cancellationToken);
