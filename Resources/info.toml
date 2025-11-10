@@ -41,3 +41,84 @@ name = "Intro2"
 directory = "00_Intro"
 test = false
 hint = "The compiler is informing us that we've got the name of the WriteLine method wrong."
+
+# VARIABLES
+
+[[exercises]]
+name = "Variables1"
+directory = "01_Variables"
+test = false
+hint = """
+The declaration in the `Main` method is missing a keyword that is needed
+in C# to create a new variable."""
+
+[[exercises]]
+name = "Variables2"
+directory = "01_Variables"
+test = false
+hint = """
+The compiler message is saying that C# can't infer the type that the
+variable binding `x` has with what is given here.
+
+What happens if you explicitly specify the type of the first line in
+the `Main` method?
+
+What if you give `x` a value?
+
+What if you do both?
+
+What type should `x` be, anyway?
+
+What if `x` is the same type as `10`? What if it's a different type?"""
+
+[[exercises]]
+name = "Variables3"
+directory = "01_Variables"
+test = false
+hint = """
+In this exercise, we have a variable that we've created in the `Main` method,
+and we're trying to use it in the next line, but we haven't given it a value.
+
+We can't print out something that isn't there; try giving `x` a value!
+
+This is an error that can cause bugs that's very easy to make in any
+programming language -- thankfully the C# compiler has caught this for us!"""
+
+[[exercises]]
+name = "Variables4"
+directory = "01_Variables"
+test = false
+hint = """
+In this exercise, the compiler is complaining that it doesn't know
+the type of the constant `x`.
+
+Unlike variables, which can use `var` for type inference, constants declared
+with the `const` keyword must always have their type explicitly specified.
+
+Try adding a type between `const` and `x`. What type should a value like `42` be?"""
+
+[[exercises]]
+name = "Variables5"
+directory = "01_Variables"
+test = false
+hint = """
+The compiler is complaining that the value of `x` cannot be used to initialize
+the constant `y`.
+
+Constants in C# must be initialized with values that are known at compile-time.
+Since `x` is a variable, its value could potentially change, so it's not a
+compile-time constant.
+
+What keyword would you need to add to `x` to make it a compile-time constant?"""
+
+[[exercises]]
+name = "Variables6"
+directory = "01_Variables"
+test = false
+hint = """
+The compiler is telling us that a constant cannot be assigned after declaration.
+
+In C#, constants must be initialized at the same time they are declared.
+You cannot declare a constant on one line and assign its value on another.
+
+Try combining the declaration and initialization into a single statement."""
