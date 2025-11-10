@@ -197,7 +197,7 @@ partial class DevAction(
         if (infoFile.FormatVersion < InfoFile.CurrentFormatVersion) {
             throw new InvalidOperationException($"""
              `format_version` > {InfoFile.CurrentFormatVersion} (supported version)
-             Try updating the Rustlings program
+             Try updating the Sharplings program
              """);
         }
 
