@@ -363,7 +363,7 @@ partial class DevAction(
 
     /// Check `<paramref name="dir"/>` for unexpected files.<br/>
     /// Only C# files in `<paramref name="allowedCsFiles"/>`, `README.md` and `*.csproj` files are allowed.<br/>
-    /// Only one level of directory nesting is allowed.
+    /// Only one level of directory nesting, `bin/` and `obj/` dirs are allowed.
     static void CheckUnexpectedFiles(DirectoryInfo dir, ISet<string> allowedCsFiles) {
         foreach (FileSystemInfo entry in dir.EnumerateFileSystemInfos()) {
             if (entry is FileInfo file) {
@@ -380,6 +380,8 @@ partial class DevAction(
             }
 
             DirectoryInfo dirEntry = (DirectoryInfo)entry;
+            if (dirEntry.Name is "bin" or "obj") continue;
+
             foreach (FileSystemInfo innerEntry in dirEntry.EnumerateFileSystemInfos()) {
                 string path = dir.Parent != null ? Path.GetRelativePath(dir.Parent.FullName, innerEntry.FullName) : innerEntry.FullName;
                 if (innerEntry is not FileInfo innerFile)
