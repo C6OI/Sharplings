@@ -1,0 +1,38 @@
+name: Publish Prerelease to NuGet
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v5
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore Core/Core.csproj
+    
+    - name: Build
+      run: dotnet build Core/Core.csproj --configuration Release --no-restore
+    
+    - name: Generate prerelease version
+      id: version
+      run: |
+        VERSION=$(grep -oP '<Version>\K[^<]+' Core/Core.csproj)
+        PRERELEASE_VERSION="${VERSION}-preview.${GITHUB_RUN_NUMBER}"
+        echo "version=${PRERELEASE_VERSION}" >> $GITHUB_OUTPUT
+        echo "Building prerelease version: ${PRERELEASE_VERSION}"
+    
+    - name: Pack
+      run: dotnet pack Core/Core.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.version.outputs.version }} --output ./nupkg
+    
+    - name: Push to NuGet
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
