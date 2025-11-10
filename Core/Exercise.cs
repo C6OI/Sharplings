@@ -1,10 +1,8 @@
-using System.Collections.Immutable;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Scripting;
+using Sharplings.Utils;
 using Spectre.Console;
 
 namespace Sharplings;
@@ -54,17 +52,10 @@ abstract class RunnableExercise {
     async Task<bool> Run(string path, bool forceStrictAnalyzer, StringBuilder? output) {
         output?.Clear();
 
-        string scriptContent = await File.ReadAllTextAsync(path);
-
-        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(scriptContent, encoding: Encoding.Default, path: path);
-        CSharpCompilation compilation = CSharpCompilation.Create(System.IO.Path.GetFileName(path))
-            .AddSyntaxTrees(syntaxTree)
-            .AddReferences(GetDefaultMetadataReferences());
-
         await using MemoryStream assemblyStream = new();
         await using MemoryStream pdbStream = new();
 
-        EmitResult emitResult = compilation.Emit(assemblyStream, pdbStream);
+        EmitResult emitResult = await ScriptHelper.EmitCompilationAsync(path, assemblyStream, pdbStream);
 
         output?.AppendLine(Markup.Escape(string.Join(Environment.NewLine, emitResult.Diagnostics)));
         if (!emitResult.Success) return false;
@@ -123,28 +114,5 @@ abstract class RunnableExercise {
             : from;
 
         return System.IO.Path.Combine(path, $"{Name}.cs");
-    }
-
-    static IEnumerable<MetadataReference> GetDefaultMetadataReferences() {
-        ScriptMetadataResolver metadataResolver = ScriptMetadataResolver.Default;
-        HashSet<MetadataReference> defaultReferences = [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)];
-
-        foreach (MetadataReference reference in ScriptOptions.Default.MetadataReferences) {
-            if (reference is UnresolvedMetadataReference unresolved) {
-                ImmutableArray<PortableExecutableReference> resolved =
-                    metadataResolver.ResolveReference(unresolved.Reference, null, unresolved.Properties);
-
-                if (resolved.IsDefault)
-                    throw new InvalidOperationException($"Cannot resolve reference {unresolved.Reference}");
-
-                foreach (PortableExecutableReference executableReference in resolved) {
-                    defaultReferences.Add(executableReference);
-                }
-            } else {
-                defaultReferences.Add(reference);
-            }
-        }
-
-        return defaultReferences.ToImmutableHashSet();
     }
 }

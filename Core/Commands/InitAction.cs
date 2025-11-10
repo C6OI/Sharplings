@@ -8,8 +8,8 @@ namespace Sharplings.Commands;
 class InitAction : AsynchronousCommandLineAction {
     const string InitSolutionFileTemplate =
         """
-        class {0} : IExercise {{
-            public void Run() {{
+        class {0} {{
+            public static void Main() {{
                 // DON'T EDIT THIS SOLUTION FILE!
                 // It will be automatically filled after you finish the exercise.
             }}
@@ -91,9 +91,6 @@ class InitAction : AsynchronousCommandLineAction {
 
         string solutionsCsprojPath = Path.Combine("Solutions", "Solutions.csproj");
         await File.WriteAllBytesAsync(solutionsCsprojPath, embeddedFiles.Files["SolutionsCsproj"], cancellationToken);
-
-        string internalScriptsDir = Path.Combine("Exercises", "Internal");
-        Directory.CreateDirectory(internalScriptsDir);
 
         AnsiConsole.MarkupLine("[lime]Initialization done[/]");
         AnsiConsole.MarkupLine($"[bold]Run `cd {dirInfo.Name}` to go into the generated directory.\n" +

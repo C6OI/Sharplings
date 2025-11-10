@@ -12,6 +12,8 @@ class ExerciseInfo : RunnableExercise {
 
 [PublicAPI]
 class InfoFile {
+    public const int CurrentFormatVersion = 1;
+
     public int FormatVersion { get; private set; }
     public string WelcomeMessage { get; private set; } = "";
     public string FinalMessage { get; private set; } = "";

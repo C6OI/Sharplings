@@ -8,8 +8,6 @@ namespace Sharplings.Commands;
 class RootAction(
     Subcommand subcommand
 ) : AsynchronousCommandLineAction {
-    const int CurrentFormatVersion = 1;
-
     public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default) {
         //Directory.SetCurrentDirectory("Sharplings");
         if (!Directory.Exists("Exercises")) {
@@ -30,7 +28,7 @@ class RootAction(
 
         InfoFile infoFile = await InfoFile.ParseAsync(cancellationToken);
 
-        if (infoFile.FormatVersion > CurrentFormatVersion) {
+        if (infoFile.FormatVersion > InfoFile.CurrentFormatVersion) {
             throw new InvalidOperationException("""
             The format version specified in the `info.toml` file is higher than the last one supported.
             It is possible that you have an outdated version of Sharplings.

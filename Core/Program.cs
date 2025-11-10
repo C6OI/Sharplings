@@ -65,6 +65,36 @@ static RootCommand GenerateCommands() {
                         Arity = ArgumentArity.ZeroOrOne
                     }
                 }
+            },
+            new Command("dev", "Commands for developing (community) Sharplings exercises") {
+                Subcommands = {
+                    new Command("new", "Create a new project for community exercises") {
+                        Action = new DevAction(DevCommand.New),
+                        Arguments = {
+                            new Argument<DirectoryInfo>("path") {
+                                Description = "The path to create the project in",
+                                Arity = ArgumentArity.ExactlyOne
+                            }
+                        },
+                        Options = {
+                            new Option<bool>("--no_git") {
+                                Description = "Don't try to initialize a Git repository in the project directory",
+                                Required = false,
+                                Arity = ArgumentArity.ExactlyOne
+                            }
+                        }
+                    },
+                    new Command("check", "Run checks on the exercises") {
+                        Action = new DevAction(DevCommand.Check),
+                        Options = {
+                            new Option<bool>("--require_solutions", "-r") {
+                                Description = "Require that every exercise has a solution",
+                                Required = false,
+                                Arity = ArgumentArity.ExactlyOne
+                            }
+                        }
+                    }
+                }
             }
         },
         Options = {
