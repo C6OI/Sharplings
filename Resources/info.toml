@@ -22,7 +22,8 @@ get started, here are some notes about how Sharplings operates:
 final_message = """
 We hope you enjoyed learning about the various aspects of C#!
 If you noticed any issues, don't hesitate to report them on GitHub.
-You can also contribute your own exercises to help the greater community!"""
+You can also contribute your own exercises to help the greater community!
+Also, we highly recommend you check out Rustlings, which is the project that Sharplings was built on."""
 
 # INTRO
 
