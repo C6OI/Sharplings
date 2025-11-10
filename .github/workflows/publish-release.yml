@@ -1,0 +1,36 @@
+name: Publish Release to NuGet
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v5
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore Core/Core.csproj
+    
+    - name: Build
+      run: dotnet build Core/Core.csproj --configuration Release --no-restore
+    
+    - name: Extract version from tag
+      id: version
+      run: |
+        TAG_VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=${TAG_VERSION}" >> $GITHUB_OUTPUT
+        echo "Publishing release version: ${TAG_VERSION}"
+    
+    - name: Pack
+      run: dotnet pack Core/Core.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.version.outputs.version }} --output ./nupkg
+    
+    - name: Push to NuGet
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
