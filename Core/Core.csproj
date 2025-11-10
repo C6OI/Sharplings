@@ -19,7 +19,14 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <Version>1.0.2</Version>
+        <Title>Small C# exercises</Title>
+        <Description>Small exercises to get you used to reading and writing C# code. Inspired by Rustlings</Description>
+        <Authors>C6OI</Authors>
+
+        <RepositoryUrl>https://github.com/C6OI/Sharplings</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+
+        <Version>1.1.0</Version>
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>Sharplings</ToolCommandName>
 
