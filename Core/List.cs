@@ -9,7 +9,6 @@ namespace Sharplings;
 
 static class List {
     public static async Task ShowList(AppState appState, CancellationToken cancellationToken) {
-        AnsiConsole.Cursor.Hide();
         await HandleList(appState, cancellationToken);
         AnsiConsole.Cursor.Show();
     }
@@ -154,6 +153,7 @@ static class List {
 
         public State(AppState appState) {
             AnsiConsole.Clear();
+            AnsiConsole.Cursor.Hide();
 
             (int nameColumnWidth, int pathColumnWidth) = appState.Exercises.Aggregate((4, 4),
                 (tuple, exercise) => (tuple.Item1.Max(exercise.Name.Length), tuple.Item2.Max(exercise.Path.Length)));
@@ -244,7 +244,7 @@ static class List {
             }
         }
 
-        public void UpdateRows() => ScrollState.RowsCount = Filter switch {
+        void UpdateRows() => ScrollState.RowsCount = Filter switch {
             Filter.None => AppState.Exercises.Count,
             Filter.Pending => AppState.Exercises.Count(exercise => !exercise.Done),
             Filter.Done => AppState.Exercises.Count(exercise => exercise.Done),
@@ -479,7 +479,7 @@ static class List {
             }
         } = rowsCount;
 
-        public int MaxScrollPadding { get; } = maxScrollPadding;
+        int MaxScrollPadding { get; } = maxScrollPadding;
         public int Offset { get; private set; } = selectedIndex == -1 ? 0 : selectedIndex.SaturatingSub(maxScrollPadding);
         int ScrollPadding { get; set; }
 

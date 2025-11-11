@@ -23,9 +23,9 @@ class AppState {
     public int ExercisesDone { get; private set; }
     public int ExercisesPending => Exercises.Count - ExercisesDone;
     public List<Exercise> Exercises { get; }
-    public FileStream StateFileStream { get; }
-    public string FinalMessage { get; }
-    public bool OfficialExercises { get; }
+    FileStream StateFileStream { get; }
+    string FinalMessage { get; }
+    bool OfficialExercises { get; }
 
     // VS Code has its own file link handling
     public bool EmitFileLinks { get; } = Environment.GetEnvironmentVariable("TERM_PROGRAM") != "vscode";
@@ -114,7 +114,7 @@ class AppState {
             await Write();
     }
 
-    public bool SetStatus(int exerciseIndex, bool done) {
+    bool SetStatus(int exerciseIndex, bool done) {
         Exercise exercise = Exercises[exerciseIndex];
         if (exercise.Done == done) return false;
 

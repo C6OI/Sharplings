@@ -108,7 +108,7 @@ abstract class RunnableExercise {
     public Task<bool> RunSolution(StringBuilder? output) =>
         Run(SolutionPath, true, output);
 
-    protected string GetPath(string from) {
+    string GetPath(string from) {
         string path = !string.IsNullOrWhiteSpace(Directory)
             ? System.IO.Path.Combine(from, Directory)
             : from;
