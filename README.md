@@ -1,4 +1,6 @@
 # Sharplings #️⃣
+[![NuGet Version](https://img.shields.io/nuget/vpre/Sharplings)](https://www.nuget.org/packages/Sharplings)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Sharplings)](https://www.nuget.org/packages/Sharplings)
 
 Small exercises to get you used to reading and writing [C#](https://dotnet.microsoft.com/en-us/languages/csharp) code. Inspired by [Rustlings](https://github.com/rust-lang/rustlings)
 
@@ -148,7 +150,7 @@ That's it! You finished your first exercise!
 ### .editorconfig
 You can modify the `.editorconfig` file as you want.
 
-Learn more at [jetbrains.com](https://www.jetbrains.com/help/rider/Using_EditorConfig.html) or [learn.microsoft.com](https://learn.microsoft.com/visualstudio/ide/create-portable-custom-editor-options) 
+Learn more at [jetbrains.com](https://www.jetbrains.com/help/rider/Using_EditorConfig.html) or [learn.microsoft.com](https://learn.microsoft.com/visualstudio/ide/create-portable-custom-editor-options)
 
 ### Publishing
 Now, add more exercises and publish them as a Git repository.
