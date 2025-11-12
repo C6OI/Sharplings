@@ -23,7 +23,8 @@ final_message = """
 We hope you enjoyed learning about the various aspects of C#!
 If you noticed any issues, don't hesitate to report them on GitHub.
 You can also contribute your own exercises to help the greater community!
-Also, we highly recommend you check out Rustlings, which is the project that Sharplings was built on."""
+Also, we highly recommend you check out Rustlings, which is the project
+that Sharplings was built on."""
 
 # INTRO
 
@@ -40,7 +41,9 @@ You might need to press ENTER after typing `n`."""
 name = "Intro2"
 directory = "00_Intro"
 test = false
-hint = "The compiler is informing us that we've got the name of the WriteLine method wrong."
+hint = """
+The compiler is informing us that we've got the name of the WriteLine
+method wrong."""
 
 # VARIABLES
 
@@ -122,3 +125,52 @@ In C#, constants must be initialized at the same time they are declared.
 You cannot declare a constant on one line and assign its value on another.
 
 Try combining the declaration and initialization into a single statement."""
+
+# METHODS
+
+[[exercises]]
+name = "Methods1"
+directory = "02_Methods"
+test = false
+hint = """
+This `Main` method is calling a method that it expects to exist, but the
+method doesn't exist. It expects this function to have the name `CallMe`.
+It also expects this method to not take any arguments and not return a value.
+Sounds a lot like `Main`, doesn't it?"""
+
+[[exercises]]
+name = "Methods2"
+directory = "02_Methods"
+test = false
+hint = """
+C# requires that all parts of a method's signature have type specified,
+but `CallMe` is missing the type of `num`."""
+
+[[exercises]]
+name = "Methods3"
+directory = "02_Methods"
+test = false
+hint = """
+This time, the method *declaration* is okay, but there's something wrong
+with the place where we are calling the method."""
+
+[[exercises]]
+name = "Methods4"
+directory = "02_Methods"
+test = false
+hint = """
+The error message points to the method `SalePrice` and says that return type is `void`.
+Take a look at the `IsEven` method for an example!"""
+
+[[exercises]]
+name = "Methods5"
+directory = "02_Methods"
+test = false
+hint = """
+The error indicates that return statement is missing. The `Square` method
+is declared to return an `int`, but the calculation `num * num` is just an
+expression that isn't being returned.
+
+There are two ways to fix this:
+1. Add the `return` keyword before `num * num;`
+2. Use an expression-bodied method with the `=>` syntax instead of a block body."""

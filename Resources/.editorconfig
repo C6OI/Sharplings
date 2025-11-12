@@ -1,3 +1,9 @@
 [*.cs]
 resharper_check_namespace_highlighting = none
 max_line_length = 80
+
+[*.toml]
+max_line_length = 80
+
+[*.md]
+max_line_length = off
