@@ -43,7 +43,6 @@ class Exercise : RunnableExercise {
 abstract class RunnableExercise {
     public required string? Directory { get; init; }
     public required string Name { get; init; }
-    public required bool Test { get; init; }
     public required bool StrictAnalyzer { get; init; }
 
     public string Path => GetPath("Exercises");
@@ -63,8 +62,6 @@ abstract class RunnableExercise {
         // todo maybe use `diagnostic.DefaultSeverity`
         if (emitResult.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             return false;
-
-        // todo tests
 
         if (StrictAnalyzer || forceStrictAnalyzer) {
             if (emitResult.Diagnostics.Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning))

@@ -36,7 +36,6 @@ class AppState {
         List<Exercise> exercises = exerciseInfos.Select(info => new Exercise {
             Directory = info.Directory,
             Name = info.Name,
-            Test = info.Test,
             StrictAnalyzer = info.StrictAnalyzer,
             Hint = info.Hint,
             Done = false,

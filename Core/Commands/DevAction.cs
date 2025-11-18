@@ -61,11 +61,6 @@ partial class DevAction(
         # Otherwise, the path is `Exercises/NAME.cs`
         # dir = "???"
         
-        # Sharplings expects the exercise to contain tests and run them.
-        # You can optionally disable testing by setting `test` to `false` (the default is `true`).
-        # In that case, the exercise will be considered done when it just successfully compiles.
-        # test = true
-        
         # You can optionally set `strict_analyzer` to `true` (the default is `false`) to only consider
         # the exercise as done when there are no warnings left.
         # strict_analyzer = false
@@ -340,9 +335,6 @@ partial class DevAction(
                 You need to have at least one such comment to guide the user.
                 """);
             }
-
-            if (exerciseInfo.Test)
-                throw new NotImplementedException("Tests are not yet implemented");
 
             paths.Add(path);
         }

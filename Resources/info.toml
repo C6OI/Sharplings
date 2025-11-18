@@ -31,7 +31,6 @@ that Sharplings was built on."""
 [[exercises]]
 name = "Intro1"
 directory = "00_Intro"
-test = false
 skip_check_unsolved = true
 hint = """
 Enter `n` to move on to the next exercise.
@@ -40,7 +39,6 @@ You might need to press ENTER after typing `n`."""
 [[exercises]]
 name = "Intro2"
 directory = "00_Intro"
-test = false
 hint = """
 The compiler is informing us that we've got the name of the WriteLine
 method wrong."""
@@ -50,7 +48,6 @@ method wrong."""
 [[exercises]]
 name = "Variables1"
 directory = "01_Variables"
-test = false
 hint = """
 The declaration in the `Main` method is missing a keyword that is needed
 in C# to create a new variable."""
@@ -58,7 +55,6 @@ in C# to create a new variable."""
 [[exercises]]
 name = "Variables2"
 directory = "01_Variables"
-test = false
 hint = """
 The compiler message is saying that C# can't infer the type that the
 variable binding `x` has with what is given here.
@@ -77,7 +73,6 @@ What if `x` is the same type as `10`? What if it's a different type?"""
 [[exercises]]
 name = "Variables3"
 directory = "01_Variables"
-test = false
 hint = """
 In this exercise, we have a variable that we've created in the `Main` method,
 and we're trying to use it in the next line, but we haven't given it a value.
@@ -90,7 +85,6 @@ programming language -- thankfully the C# compiler has caught this for us!"""
 [[exercises]]
 name = "Variables4"
 directory = "01_Variables"
-test = false
 hint = """
 In this exercise, the compiler is complaining that it doesn't know
 the type of the constant `x`.
@@ -103,7 +97,6 @@ Try adding a type between `const` and `x`. What type should a value like `42` be
 [[exercises]]
 name = "Variables5"
 directory = "01_Variables"
-test = false
 hint = """
 The compiler is complaining that the value of `x` cannot be used to initialize
 the constant `y`.
@@ -117,7 +110,6 @@ What keyword would you need to add to `x` to make it a compile-time constant?"""
 [[exercises]]
 name = "Variables6"
 directory = "01_Variables"
-test = false
 hint = """
 The compiler is telling us that a constant cannot be assigned after declaration.
 
@@ -131,7 +123,6 @@ Try combining the declaration and initialization into a single statement."""
 [[exercises]]
 name = "Methods1"
 directory = "02_Methods"
-test = false
 hint = """
 This `Main` method is calling a method that it expects to exist, but the
 method doesn't exist. It expects this function to have the name `CallMe`.
@@ -141,7 +132,6 @@ Sounds a lot like `Main`, doesn't it?"""
 [[exercises]]
 name = "Methods2"
 directory = "02_Methods"
-test = false
 hint = """
 C# requires that all parts of a method's signature have type specified,
 but `CallMe` is missing the type of `num`."""
@@ -149,7 +139,6 @@ but `CallMe` is missing the type of `num`."""
 [[exercises]]
 name = "Methods3"
 directory = "02_Methods"
-test = false
 hint = """
 This time, the method *declaration* is okay, but there's something wrong
 with the place where we are calling the method."""
@@ -157,7 +146,6 @@ with the place where we are calling the method."""
 [[exercises]]
 name = "Methods4"
 directory = "02_Methods"
-test = false
 hint = """
 The error message points to the method `SalePrice` and says that return type is `void`.
 Take a look at the `IsEven` method for an example!"""
@@ -165,7 +153,6 @@ Take a look at the `IsEven` method for an example!"""
 [[exercises]]
 name = "Methods5"
 directory = "02_Methods"
-test = false
 hint = """
 The error indicates that return statement is missing. The `Square` method
 is declared to return an `int`, but the calculation `num * num` is just an
