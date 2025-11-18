@@ -161,3 +161,44 @@ expression that isn't being returned.
 There are two ways to fix this:
 1. Add the `return` keyword before `num * num;`
 2. Use an expression-bodied method with the `=>` syntax instead of a block body."""
+
+# IF
+
+[[exercises]]
+name = "If1"
+directory = "03_If"
+hint = """
+It's possible to do this in one line if you would like!
+
+Some similar examples from other languages:
+- In Rust this would be: `if a > b { a } else { b }`
+- In Python this would be:  `a if a > b else b`
+
+Remember in C# that:
+- An `if` statement with an `else` part selects one of the two statements
+  to execute based on the value of a Boolean expression
+- An `if` statement without an `else` part executes its body only if
+  a Boolean expression evaluates to true
+- You can nest `if` statements to check multiple conditions
+- In an expression context, you can use the conditional operator `?:` to
+  evaluate one of the two expressions based on the value of a Boolean expression."""
+
+[[exercises]]
+name = "If2"
+directory = "03_If"
+hint = """
+For that first compiler error, it's important in C# that each conditional
+block returns the same type!
+
+To get the tests passing, you will need a couple conditions checking different
+input values. Read the tests to find out what they expect."""
+
+[[exercises]]
+name = "If3"
+directory = "03_If"
+hint = """
+In C#, both possible results of the conditional operator `?:`
+must have compatible types.
+
+Make sure the expressions in the `true` and `false` branches can be resolved
+to a single common type."""
