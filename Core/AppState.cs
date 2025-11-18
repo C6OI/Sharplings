@@ -39,7 +39,7 @@ class AppState {
             Test = info.Test,
             StrictAnalyzer = info.StrictAnalyzer,
             Hint = info.Hint,
-            Done = false
+            Done = false,
         }).ToList();
 
         int currentExerciseIndex = 0;
@@ -50,7 +50,7 @@ class AppState {
             Access = FileAccess.ReadWrite,
             Mode = FileMode.OpenOrCreate,
             Share = FileShare.None,
-            Options = FileOptions.SequentialScan
+            Options = FileOptions.SequentialScan,
         });
 
         using (StreamReader reader = new(stateFileStream, leaveOpen: true)) {
@@ -74,7 +74,7 @@ class AppState {
 
         return (new AppState(exercises, finalMessage, stateFileStream, !File.Exists("info.toml")) {
             CurrentExerciseIndex = currentExerciseIndex,
-            ExercisesDone = exercisesDone
+            ExercisesDone = exercisesDone,
         }, parseResult);
     }
 
@@ -255,7 +255,7 @@ class AppState {
 
         (ChannelWriter<(int, CheckProgress)> progressWriter, ChannelReader<(int, CheckProgress)> progressReader) =
             Channel.CreateUnbounded<(int, CheckProgress)>(new UnboundedChannelOptions {
-                SingleReader = true
+                SingleReader = true,
             });
 
         Task parallelCheckTask = Parallel.ForAsync(0, Exercises.Count, async (index, token) => {
@@ -264,7 +264,7 @@ class AppState {
 
             CheckProgress progress = await exercise.RunExercise(null) switch {
                 true => CheckProgress.Done,
-                false => CheckProgress.Pending
+                false => CheckProgress.Pending,
             };
 
             await progressWriter.WriteAsync((index, progress), token);

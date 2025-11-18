@@ -39,7 +39,7 @@ static class Watcher {
     static async Task<WatchExit> RunWatch(AppState appState, bool manualRun, CancellationToken cancellationToken) {
         (ChannelWriter<IWatchEvent> watchEventWriter, ChannelReader<IWatchEvent> watchEventReader) = Channel.CreateUnbounded<IWatchEvent>(
             new UnboundedChannelOptions {
-                SingleReader = true
+                SingleReader = true,
             });
 
         FileSystemWatcher? exercisesWatcher = null;
@@ -159,6 +159,6 @@ static class Watcher {
         /// Exit the program.
         Shutdown,
         /// Enter the list mode and restart the watch mode afterward.
-        List
+        List,
     }
 }

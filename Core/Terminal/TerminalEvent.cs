@@ -26,7 +26,7 @@ static class TerminalEvent {
                             'c' => InputEvent.CheckAll,
                             'x' => InputEvent.Reset,
                             'q' => InputEvent.Quit,
-                            _ => InputEvent.None
+                            _ => InputEvent.None,
                         };
 
                         if (inputEvent == InputEvent.None) continue;
