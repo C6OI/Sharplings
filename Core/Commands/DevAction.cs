@@ -123,28 +123,17 @@ partial class DevAction(
         Directory.SetCurrentDirectory(path.FullName);
 
         if (!noGit) {
-            Process gitInit = new() {
-                StartInfo = new ProcessStartInfo {
-                    FileName = "git",
-                    Arguments = "init",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                },
-                EnableRaisingEvents = true
-            };
+            ProcessBuilder builder = new ProcessBuilder()
+                .WithFileName("git")
+                .AddArgument("init")
+                .CreateNoWindow()
+                .WithStdOut(Console.Out)
+                .WithStdErr(Console.Error);
 
-            gitInit.OutputDataReceived += (_, e) => Console.Out.WriteLine(e.Data);
-            gitInit.ErrorDataReceived += (_, e) => Console.Error.WriteLine(e.Data);
+            using Process process = builder.StartProcess();
+            await process.WaitForExitAsync(cancellationToken);
 
-            gitInit.Start();
-
-            gitInit.BeginOutputReadLine();
-            gitInit.BeginErrorReadLine();
-            await gitInit.WaitForExitAsync(cancellationToken);
-
-            if (gitInit.ExitCode != 0) {
+            if (process.ExitCode != 0) {
                 throw new InvalidOperationException("`git init` didn't run successfully. See the possible error message above");
             }
         }

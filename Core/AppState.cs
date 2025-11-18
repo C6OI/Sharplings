@@ -352,17 +352,16 @@ class AppState {
             return;
         }
 
-        Process? process = Process.Start(new ProcessStartInfo {
-            FileName = "git",
-            ArgumentList = { "stash", "push", "--", path },
-            RedirectStandardInput = false,
-            RedirectStandardOutput = false,
-            RedirectStandardError = true
-        });
+        ProcessBuilder builder = new ProcessBuilder()
+            .WithFileName("git")
+            .AddArgument("stash")
+            .AddArgument("push")
+            .AddArgument("--")
+            .AddArgument(path)
+            .CreateNoWindow()
+            .RedirectStdErr();
 
-        if (process == null)
-            throw new InvalidOperationException($"Failed to run `git stash push -- {path}`");
-
+        using Process process = builder.StartProcess();
         await process.WaitForExitAsync();
 
         if (process.ExitCode != 0) {
